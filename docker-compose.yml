@@ -1,0 +1,14 @@
+services:
+  spring:
+    container_name: spring-security
+    image: mysql:8.2.0
+    restart: always
+    volumes:
+      - ./mysql:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: "spring_security"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "123456"
