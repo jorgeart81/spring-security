@@ -8,7 +8,7 @@ import jakarta.persistence.*
 data class TokenEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Int? = null,
+    var id: Long? = null,
 
     @Column(unique = true, nullable = false)
     val token: String,
@@ -16,11 +16,21 @@ data class TokenEntity(
     @Column(name = "token_type")
     val tokenType: TokenType? = TokenType.BEARER,
 
-    val revoked: Boolean?,
+    var revoked: Boolean?,
 
-    val expired: Boolean?,
+    var expired: Boolean?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     var user: UserEntity,
-)
+) {
+    fun revoke(): TokenEntity {
+        this.revoked = true
+        return this
+    }
+
+    fun expire(): TokenEntity {
+        this.expired = true
+        return this
+    }
+}

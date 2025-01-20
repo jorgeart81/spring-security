@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class UserResponse(
-    val id: Int?,
+    val id: Long?,
     val username: String,
     val enabled: Boolean,
 )

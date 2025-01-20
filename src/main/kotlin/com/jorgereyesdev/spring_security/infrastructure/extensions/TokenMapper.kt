@@ -21,7 +21,7 @@ fun TokenEntity.toTDomain() = Token(
     id = this.id,
     token = this.token,
     tokenType = this.tokenType,
-    revoked = this.revoked,
-    expired = this.expired,
+    revoked = this.revoked ?: false,
+    expired = this.expired ?: false,
     user = this.user.toDomain(),
 )

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Constants.Companion.API}/users")
+@RequestMapping("${Constants.API}/users")
 class UserController {
 
     @GetMapping
