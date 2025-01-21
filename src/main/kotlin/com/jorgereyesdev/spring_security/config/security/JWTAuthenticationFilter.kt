@@ -33,26 +33,28 @@ class JwtAuthenticationFilter(
         }
 
         val token = getTokenFromRequest(request)
-        if (token == null) {
+        if (token.isNullOrEmpty()) {
             filterChain.doFilter(request, response)
             return
         }
 
         val username = jwtService.getUsernameFromToken(token)
+        val isTokenExpired = jwtService.isTokenExpired(token)
 
-        if (username.isNullOrEmpty()) {
+        if (username.isNullOrEmpty() || isTokenExpired) {
             filterChain.doFilter(request, response)
             return
         }
 
         val userDetails = userDetailsService.loadUserByUsername(username)
         val userEntity = userRepository.findByUsernameWithValidTokens(userDetails.username)
-        val validTokens = userEntity?.tokens?.filter { it.token == token }
+        val isTokenAllowed = userEntity?.tokens?.any { it.token == token } ?: false
 
-        if (userEntity == null || validTokens?.isEmpty() == true) {
+        if (userEntity == null || !isTokenAllowed) {
             filterChain.doFilter(request, response)
             return
         }
+
         val isTokenValid = jwtService.isTokenValid(token, userEntity.username)
 
         if (!isTokenValid) return

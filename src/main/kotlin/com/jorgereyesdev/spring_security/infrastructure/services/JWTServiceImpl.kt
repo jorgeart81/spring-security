@@ -20,17 +20,23 @@ class JWTServiceImpl : JWTService {
     private val log: Logger = LoggerFactory.getLogger(JWTService::class.java)
 
     override fun generateToken(user: User): String {
-        val extraClaims = mapOf("username" to user.username)
         return buildToken(
-            user,
-            EnvironmentVariables.Jwt.EXPIRATION,
-            extraClaims
+            user = user,
+            expiration = EnvironmentVariables.Jwt.EXPIRATION,
+            extraClaims = mapOf("username" to user.username)
         )
     }
 
     override fun generateRefreshToken(user: User): String {
-        val extraClaims = mapOf(Jwt.GRANT_TYPE to Jwt.REFRESH_TOKEN)
-        return buildToken(user, EnvironmentVariables.Jwt.REFRESH_EXPIRATION, extraClaims)
+        return buildToken(
+            user = user,
+            expiration = EnvironmentVariables.Jwt.REFRESH_EXPIRATION,
+            extraClaims = mapOf(Jwt.GRANT_TYPE to Jwt.REFRESH_TOKEN)
+        )
+    }
+
+    override fun isTokenExpired(token: String): Boolean {
+        return getExpiration(token).before(Date(System.currentTimeMillis()))
     }
 
     override fun isTokenValid(token: String, username: String): Boolean {
@@ -48,19 +54,7 @@ class JWTServiceImpl : JWTService {
     }
 
     override fun getUsernameFromToken(token: String): String? {
-        if (isTokenExpired(token)) return null
         return getClaims(token, Claims::getSubject)
-    }
-
-    fun <T> getClaims(token: String, claimsResolver: (Claims) -> T): T {
-        try {
-            val claims = getAllClaims(token)
-            val x = Claims::getSubject
-            return claimsResolver(claims)
-        } catch (exception: Exception) {
-            log.error(exception.message)
-            throw AuthenticationCredentialsNotFoundException("Invalid jwt")
-        }
     }
 
     private fun buildToken(user: User, expiration: Int, extraClaims: Map<String, Any> = mapOf()): String {
@@ -88,11 +82,19 @@ class JWTServiceImpl : JWTService {
             .payload
     }
 
-    private fun getExpiration(token: String): Date {
-        return getClaims(token, Claims::getExpiration)
+    private fun <T> getClaims(token: String, claimsResolver: (Claims) -> T): T {
+        try {
+            val claims = getAllClaims(token)
+            val x = Claims::getSubject
+            return claimsResolver(claims)
+        } catch (exception: Exception) {
+            log.error(exception.message)
+            throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+        }
     }
 
-    private fun isTokenExpired(token: String): Boolean {
-        return getExpiration(token).before(Date(System.currentTimeMillis()))
+
+    private fun getExpiration(token: String): Date {
+        return getClaims(token, Claims::getExpiration)
     }
 }
