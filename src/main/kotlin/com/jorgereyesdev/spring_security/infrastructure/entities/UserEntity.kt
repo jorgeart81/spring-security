@@ -22,6 +22,9 @@ data class UserEntity(
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     var tokens: MutableList<TokenEntity>? = mutableListOf(),
 ) {
+    override fun toString(): String {
+        return "UserEntity(id=$id, username=$username)"
+    }
 
     fun setSecurePassword(password: String, passwordEncoder: PasswordEncoder): UserEntity {
         this.password = passwordEncoder.encode(password)

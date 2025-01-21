@@ -45,7 +45,6 @@ class JWTServiceImpl : JWTService {
             Pair(claims.subject, claims[Jwt.GRANT_TYPE] as? String)
         }
         return subject.equals(username) && grantType.equals(Jwt.REFRESH_TOKEN) && !isTokenExpired(token)
-
     }
 
     override fun getUsernameFromToken(token: String): String? {

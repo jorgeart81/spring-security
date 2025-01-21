@@ -24,6 +24,10 @@ class JwtAuthenticationFilter(
 ) :
     OncePerRequestFilter() {
 
+    object Token {
+        var lastValid: String? = null
+    }
+
     override fun doFilterInternal(
         request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain
     ) {
@@ -46,13 +50,13 @@ class JwtAuthenticationFilter(
         }
 
         val userDetails = userDetailsService.loadUserByUsername(username)
-        val userEntity = userRepository.findByUsername(userDetails.username)
+        val userEntity = userRepository.findByUsernameWithValidTokens(userDetails.username)
+        val validTokens = userEntity?.tokens?.filter { it.token == token }
 
-        if (userEntity == null) {
+        if (userEntity == null || validTokens?.isEmpty() == true) {
             filterChain.doFilter(request, response)
             return
         }
-
         val isTokenValid = jwtService.isTokenValid(token, userEntity.username)
 
         if (!isTokenValid) return

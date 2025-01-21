@@ -1,6 +1,7 @@
 package com.jorgereyesdev.spring_security.infrastructure.entities
 
 import com.jorgereyesdev.spring_security.domain.models.TokenType
+import com.jorgereyesdev.spring_security.domain.services.JWTService
 import jakarta.persistence.*
 
 @Entity
@@ -25,6 +26,10 @@ data class TokenEntity(
     @JoinColumn(name = "user_id")
     var user: UserEntity,
 ) {
+    override fun toString(): String {
+        return "TokenEntity(id=$id)"
+    }
+
     fun revoke(): TokenEntity {
         this.revoked = true
         return this

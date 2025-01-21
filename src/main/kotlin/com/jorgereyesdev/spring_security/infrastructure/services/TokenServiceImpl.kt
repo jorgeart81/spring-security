@@ -3,7 +3,6 @@ package com.jorgereyesdev.spring_security.infrastructure.services
 import com.jorgereyesdev.spring_security.domain.models.Token
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.TokenService
-import com.jorgereyesdev.spring_security.infrastructure.entities.TokenEntity
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toEntity
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toTDomain
 import com.jorgereyesdev.spring_security.infrastructure.repositories.TokenRepository
