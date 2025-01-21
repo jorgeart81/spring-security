@@ -1,5 +1,7 @@
 package com.jorgereyesdev.spring_security.infrastructure.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.jorgereyesdev.spring_security.domain.models.Role
 import jakarta.persistence.*
 import org.springframework.security.crypto.password.PasswordEncoder
 
@@ -21,6 +23,16 @@ data class UserEntity(
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     var tokens: MutableList<TokenEntity>? = mutableListOf(),
+
+    @JsonIgnoreProperties(value = ["users"])
+    @ManyToMany
+    @JoinTable(
+        name = "user_role",
+        joinColumns = [JoinColumn(name = "user_id")],
+        inverseJoinColumns = [JoinColumn(name = "role_id")],
+        uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "role_id"])]
+    )
+    var roles: MutableList<RoleEntity> = mutableListOf(),
 ) {
     override fun toString(): String {
         return "UserEntity(id=$id, username=$username)"
@@ -37,5 +49,11 @@ data class UserEntity(
 
     fun disable() {
         this.enabled = false
+    }
+
+    fun addRole(roleEntity: RoleEntity) {
+        val roleList = HashSet(this.roles)
+        roleList.add(roleEntity)
+        this.roles = roleList.toMutableList()
     }
 }
