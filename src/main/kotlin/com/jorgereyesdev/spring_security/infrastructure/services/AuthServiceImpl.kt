@@ -60,7 +60,7 @@ class AuthServiceImpl(
         val refreshToken = authHeader.substring(7)
         val username = jwtService.getUsernameFromToken(refreshToken) ?: throw IllegalArgumentException("Invalid token")
 
-        require(jwtService.isTokenValid(refreshToken, username)) {
+        require(jwtService.isRefreshTokenValid(refreshToken, username)) {
             "Invalid token"
         }
 
