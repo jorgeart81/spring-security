@@ -13,8 +13,9 @@ data class TokenEntity(
     @Column(unique = true, nullable = false)
     val token: String,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "token_type")
-    val tokenType: TokenType? = TokenType.BEARER,
+    var tokenType: TokenType? = TokenType.BEARER,
 
     var revoked: Boolean?,
 

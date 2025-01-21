@@ -1,13 +1,13 @@
 package com.jorgereyesdev.spring_security.presentantion.controllers
 
-import com.jorgereyesdev.spring_security.config.Constants
+import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.presentantion.response.UserResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Constants.API}/users")
+@RequestMapping(Routes.USERS)
 class UserController {
 
     @GetMapping

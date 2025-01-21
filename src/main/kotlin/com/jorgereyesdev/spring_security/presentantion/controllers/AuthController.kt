@@ -1,6 +1,6 @@
 package com.jorgereyesdev.spring_security.presentantion.controllers
 
-import com.jorgereyesdev.spring_security.config.Constants
+import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.domain.models.Token
 import com.jorgereyesdev.spring_security.domain.services.AuthService
 import com.jorgereyesdev.spring_security.domain.services.JWTService
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 
 @RestController
-@RequestMapping("${Constants.API}/auth")
+@RequestMapping(Routes.AUTH)
 class AuthController(val authService: AuthService, val tokenService: TokenService, val jwtService: JWTService) {
 
     @PostMapping("/register")
@@ -54,7 +54,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         val accessToken = jwtService.generateToken(user)
         val refreshToken = jwtService.generateRefreshToken(user)
 
-//        tokenService.revokeAllUserTokens(user)
+        tokenService.revokeAllUserTokens(user)
         tokenService.saveToken(
             Token(
                 token = accessToken,
@@ -75,9 +75,19 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
 
     @PostMapping("/refresh")
     fun refresh(@RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String): ResponseEntity<ApiResponse<Nothing>> {
-        val user = authService.refreshToken(authHeader)
+        val (user, refreshToken) = authService.validateToken(authHeader)
+        if (user == null) return ResponseEntity.badRequest().build()
         val accessToken = jwtService.generateToken(user)
-        val refreshToken = jwtService.generateRefreshToken(user)
+
+        tokenService.revokeAllUserTokens(user)
+        tokenService.saveToken(
+            Token(
+                token = accessToken,
+                user = user,
+                revoked = false,
+                expired = false
+            )
+        )
 
         return ResponseEntity.ok(
             ApiResponse.Success(
@@ -102,40 +112,40 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         }
     }
 
-//    @PostMapping("/register")
-//    suspend fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<ApiResponse<UserResponse>> {
-//        authService.register(registerRequest.toDomain()).mapCatching { createdUser ->
-//            val accessToken = jwtService.generateToken(createdUser)
-//            val refreshToken = jwtService.generateRefreshToken(createdUser)
-//
-//            tokenService.saveToken(
-//                Token(
-//                    token = accessToken,
-//                    user = createdUser,
-//                    revoked = false,
-//                    expired = false
-//                )
-//            )
-//
-//            Pair(createdUser, accessToken to refreshToken)
-//        }.fold(
-//            onSuccess = { (createdUser, tokens) ->
-//                val location =
-//                    ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(createdUser.id)
-//                        .toUri()
-//                val (accessToken, refreshToken) = tokens
-//
-//                return ResponseEntity.created(location).body(
-//                    ApiResponse.Success(
-//                        accessToken = accessToken,
-//                        refreshToken = refreshToken
-//                    )
-//                )
-//            },
-//            onFailure = { exception ->
-//                return errorResponse(exception)
-//            }
-//        )
-//    }
+    @PostMapping("/register2")
+    suspend fun register2(@RequestBody registerRequest: RegisterRequest): ResponseEntity<ApiResponse<UserResponse>> {
+        authService.register2(registerRequest.toDomain()).mapCatching { createdUser ->
+            val accessToken = jwtService.generateToken(createdUser)
+            val refreshToken = jwtService.generateRefreshToken(createdUser)
+
+            val token = tokenService.saveToken(
+                Token(
+                    token = accessToken,
+                    user = createdUser,
+                    revoked = false,
+                    expired = false
+                )
+            )
+
+            Pair(createdUser, accessToken to refreshToken)
+        }.fold(
+            onSuccess = { (createdUser, tokens) ->
+                val location =
+                    ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(createdUser.id)
+                        .toUri()
+                val (accessToken, refreshToken) = tokens
+
+                return ResponseEntity.created(location).body(
+                    ApiResponse.Success(
+                        accessToken = accessToken,
+                        refreshToken = refreshToken
+                    )
+                )
+            },
+            onFailure = { exception ->
+                return errorResponse(exception)
+            }
+        )
+    }
 
 }

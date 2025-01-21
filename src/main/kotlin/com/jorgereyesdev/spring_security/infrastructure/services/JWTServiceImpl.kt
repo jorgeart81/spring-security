@@ -16,7 +16,7 @@ import javax.crypto.SecretKey
 
 @Service
 class JWTServiceImpl : JWTService {
-    val log: Logger = LoggerFactory.getLogger(JWTService::class.java)
+    private val log: Logger = LoggerFactory.getLogger(JWTService::class.java)
 
     override fun generateToken(user: User): String {
         val extraClaims = mapOf("username" to user.username)
@@ -28,7 +28,8 @@ class JWTServiceImpl : JWTService {
     }
 
     override fun generateRefreshToken(user: User): String {
-        return buildToken(user, EnvironmentVariables.Jwt.REFRESH_EXPIRATION)
+        val extraClaims = mapOf("username" to user.username)
+        return buildToken(user, EnvironmentVariables.Jwt.REFRESH_EXPIRATION, extraClaims)
     }
 
     override fun isTokenValid(token: String, username: String): Boolean {
@@ -81,6 +82,6 @@ class JWTServiceImpl : JWTService {
     }
 
     private fun isTokenExpired(token: String): Boolean {
-        return getClaims(token, Claims::getExpiration).before(Date(System.currentTimeMillis()))
+        return getExpiration(token).before(Date(System.currentTimeMillis()))
     }
 }

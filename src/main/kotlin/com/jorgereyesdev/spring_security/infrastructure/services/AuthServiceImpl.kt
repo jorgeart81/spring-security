@@ -1,8 +1,9 @@
 package com.jorgereyesdev.spring_security.infrastructure.services
 
+import com.jorgereyesdev.spring_security.config.Constants.Authorization
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.AuthService
-import com.jorgereyesdev.spring_security.domain.services.TokenService
+import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toDomain
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toEntity
 import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
@@ -17,32 +18,28 @@ import org.springframework.stereotype.Service
 @Service
 class AuthServiceImpl(
     val userRepository: UserRepository,
-//    val tokenService: TokenService,
+    val jwtService: JWTService,
     val passwordEncoder: PasswordEncoder,
     val authenticationManager: AuthenticationManager,
 ) : AuthService {
     private val log: Logger = LoggerFactory.getLogger(AuthServiceImpl::class.java)
 
-//    @Transactional
-//    override suspend fun register(user: User): Result<User> {
-//        return runCatching {
-//            val userEntity = user.toEntity()
-//            userEntity
-//                .setSecurePassword(user.password, passwordEncoder)
-//                .enable()
-//
-//            userRepository.save(userEntity).toDomain()
-//        }.onFailure {
-//            log.error(it.message)
-//        }
-//    }
+    @Transactional
+    override suspend fun register2(user: User): Result<User> {
+        return runCatching {
+            val userEntity = user.toEntity()
+            userEntity.setSecurePassword(user.password, passwordEncoder).enable()
+
+            userRepository.save(userEntity).toDomain()
+        }.onFailure {
+            log.error(it.message)
+        }
+    }
 
     @Transactional
     override fun register(user: User): User {
         val userEntity = user.toEntity()
-        userEntity
-            .setSecurePassword(user.password, passwordEncoder)
-            .enable()
+        userEntity.setSecurePassword(user.password, passwordEncoder).enable()
 
         return userRepository.save(userEntity).toDomain()
     }
@@ -55,8 +52,21 @@ class AuthServiceImpl(
     }
 
     @Transactional
-    override fun refreshToken(authHeader: String): User {
-        TODO("Not yet implemented")
+    override fun validateToken(authHeader: String?): Pair<User?, String> {
+        if (authHeader.isNullOrEmpty() || !authHeader.startsWith(Authorization.BEARER)) {
+            throw IllegalArgumentException("Invalid token")
+        }
+
+        val refreshToken = authHeader.substring(7)
+        val username = jwtService.getUsernameFromToken(refreshToken) ?: throw IllegalArgumentException("Invalid token")
+
+        require(jwtService.isTokenValid(refreshToken, username)) {
+            "Invalid token"
+        }
+
+        val user = username.let { userRepository.findByUsername(it)?.toDomain() }
+
+        return Pair(user, refreshToken)
     }
 
 }

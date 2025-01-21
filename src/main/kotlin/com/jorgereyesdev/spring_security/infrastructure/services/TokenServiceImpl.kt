@@ -16,15 +16,15 @@ import org.springframework.stereotype.Service
 class TokenServiceImpl(private val tokenRepository: TokenRepository) : TokenService {
     private val log: Logger = LoggerFactory.getLogger(TokenServiceImpl::class.java)
 
-//    @Transactional
-//    override suspend fun saveToken(token: Token): Result<Token> {
-//        return runCatching {
-//            val tokenEntity = tokenRepository.save(token.toEntity())
-//            tokenEntity.toTDomain()
-//        }.onFailure {
-//            log.error(it.message)
-//        }
-//    }
+    @Transactional
+    override suspend fun saveToken2(token: Token): Result<Token> {
+        return runCatching {
+            val tokenEntity = tokenRepository.save(token.toEntity())
+            tokenEntity.toTDomain()
+        }.onFailure {
+            log.error(it.message)
+        }
+    }
 
     @Transactional
     override fun saveToken(token: Token): Token {
@@ -34,7 +34,6 @@ class TokenServiceImpl(private val tokenRepository: TokenRepository) : TokenServ
 
     @Transactional
     override fun revokeAllUserTokens(user: User) {
-
         val validTokens =
             user.id?.let { tokenRepository.findAllValidByUserId(it) } ?: throw NoSuchElementException("Not found")
 
@@ -42,8 +41,7 @@ class TokenServiceImpl(private val tokenRepository: TokenRepository) : TokenServ
             val tokens = validTokens.map {
                 it.revoke().expire()
             }
-            val invalidTokens = tokenRepository.saveAll(tokens)
-            invalidTokens.toList().isNotEmpty()
+            tokenRepository.saveAll(tokens)
         }
     }
 
