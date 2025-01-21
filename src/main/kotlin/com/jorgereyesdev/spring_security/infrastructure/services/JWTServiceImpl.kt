@@ -48,6 +48,7 @@ class JWTServiceImpl : JWTService {
     }
 
     override fun getUsernameFromToken(token: String): String? {
+        if (isTokenExpired(token)) return null
         return getClaims(token, Claims::getSubject)
     }
 
