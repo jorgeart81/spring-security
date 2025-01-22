@@ -2,7 +2,6 @@ package com.jorgereyesdev.spring_security.config.security
 
 import com.jorgereyesdev.spring_security.config.Constants.*
 import com.jorgereyesdev.spring_security.infrastructure.repositories.TokenRepository
-import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -15,9 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -31,6 +28,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 class SecurityConfig(
     val userDetailsService: UserDetailsService,
     val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    val jwtAuthenticationEntryPoint: JWTAuthenticationEntryPoint,
     val tokenRepository: TokenRepository
 ) {
 
@@ -55,6 +53,7 @@ class SecurityConfig(
     fun filterChainDsl(httpSecurity: HttpSecurity): SecurityFilterChain {
         httpSecurity.invoke {
             csrf { disable() }
+            exceptionHandling { authenticationEntryPoint = jwtAuthenticationEntryPoint }
             authorizeHttpRequests {
                 authorize("${Routes.AUTH}/**", permitAll)
                 authorize("${Routes.USERS}/**", permitAll)

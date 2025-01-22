@@ -3,10 +3,14 @@ package com.jorgereyesdev.spring_security.config.security
 import com.jorgereyesdev.spring_security.config.Constants.*
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
+import com.jorgereyesdev.spring_security.infrastructure.services.AuthServiceImpl
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
@@ -23,6 +27,7 @@ class JwtAuthenticationFilter(
     val userDetailsService: UserDetailsService
 ) :
     OncePerRequestFilter() {
+    private val log: Logger = LoggerFactory.getLogger(AuthServiceImpl::class.java)
 
     override fun doFilterInternal(
         request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain
@@ -38,26 +43,32 @@ class JwtAuthenticationFilter(
             return
         }
 
-        val username = jwtService.getUsernameFromToken(token)
-        val isTokenExpired = jwtService.isTokenExpired(token)
+        val userDetails =
+            runCatching {
+                val username = jwtService.getUsernameFromToken(token)
+                val isTokenExpired = jwtService.isTokenExpired(token)
 
-        if (username.isNullOrEmpty() || isTokenExpired) {
-            filterChain.doFilter(request, response)
-            return
-        }
+                if (username.isNullOrEmpty() || isTokenExpired) {
+                    throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+                }
 
-        val userDetails = userDetailsService.loadUserByUsername(username)
-        val userEntity = userRepository.findByUsernameWithValidTokens(userDetails.username)
-        val isTokenAllowed = userEntity?.tokens?.any { it.token == token } ?: false
+                val userDetails = userDetailsService.loadUserByUsername(username)
+                val userEntity = userRepository.findByUsernameWithValidTokens(userDetails.username)
+                val isTokenAllowed = userEntity?.tokens?.any { it.token == token } ?: false
 
-        if (userEntity == null || !isTokenAllowed) {
-            filterChain.doFilter(request, response)
-            return
-        }
+                if (userEntity == null || !isTokenAllowed) {
+                    throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+                }
 
-        val isTokenValid = jwtService.isTokenValid(token, userEntity.username)
+                val isTokenValid = jwtService.isTokenValid(token, userEntity.username)
 
-        if (!isTokenValid) return
+                if (!isTokenValid) throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+
+                userDetails
+            }.onFailure {
+                filterChain.doFilter(request, response)
+                log.warn(it.message)
+            }.getOrThrow()
 
         configureAuthentication(userDetails, request)
 
@@ -82,3 +93,13 @@ class JwtAuthenticationFilter(
         SecurityContextHolder.getContext().authentication = authenticationToken
     }
 }
+
+//val username =
+//    runCatching {
+//        val username = jwtService.getUsernameFromToken(token)
+//        val isTokenExpired = jwtService.isTokenExpired(token)
+//
+//        if (username.isNullOrEmpty() || isTokenExpired) throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+//
+//        username
+//    }.onFailure { filterChain.doFilter(request, response) }.getOrThrow()
