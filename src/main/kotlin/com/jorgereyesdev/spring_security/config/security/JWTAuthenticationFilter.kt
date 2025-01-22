@@ -49,7 +49,7 @@ class JwtAuthenticationFilter(
                 val isTokenExpired = jwtService.isTokenExpired(token)
 
                 if (username.isNullOrEmpty() || isTokenExpired) {
-                    throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+                    throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
                 }
 
                 val userDetails = userDetailsService.loadUserByUsername(username)
@@ -57,12 +57,12 @@ class JwtAuthenticationFilter(
                 val isTokenAllowed = userEntity?.tokens?.any { it.token == token } ?: false
 
                 if (userEntity == null || !isTokenAllowed) {
-                    throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+                    throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
                 }
 
                 val isTokenValid = jwtService.isTokenValid(token, userEntity.username)
 
-                if (!isTokenValid) throw AuthenticationCredentialsNotFoundException("Invalid jwt")
+                if (!isTokenValid) throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
 
                 userDetails
             }.onFailure {
