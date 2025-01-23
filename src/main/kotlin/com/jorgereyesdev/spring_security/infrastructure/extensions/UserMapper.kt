@@ -8,7 +8,8 @@ fun User.toEntity(): UserEntity {
         username = this.username,
         password = this.password,
         enabled = this.enable,
-        tokens = this.tokens?.map { it.toEntity() }?.toMutableList()
+        tokens = this.tokens?.map { it.toEntity() }?.toMutableList(),
+        roles = this.roles?.map { it.toEntity() }?.toMutableList()
     )
 
     if (this.id != null) userEntity.id = this.id
@@ -21,5 +22,6 @@ fun UserEntity.toDomain() = User(
     username = this.username,
     password = this.password,
     enable = this.enabled,
-    tokens = mutableListOf()
+    tokens = mutableListOf(),
+    roles = this.roles?.map { it.toDomain() }?.toMutableList()
 )
