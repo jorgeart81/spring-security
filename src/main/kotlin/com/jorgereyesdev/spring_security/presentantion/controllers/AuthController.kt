@@ -1,7 +1,9 @@
 package com.jorgereyesdev.spring_security.presentantion.controllers
 
 import com.jorgereyesdev.spring_security.config.Constants.Routes
+import com.jorgereyesdev.spring_security.domain.models.GrantType
 import com.jorgereyesdev.spring_security.domain.models.Token
+import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.AuthService
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.domain.services.TokenService
@@ -27,17 +29,8 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         val location =
             ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newUser.id)
                 .toUri()
-        val accessToken = jwtService.generateToken(newUser)
-        val refreshToken = jwtService.generateRefreshToken(newUser)
 
-        val tokenId = tokenService.saveToken(
-            Token(
-                token = accessToken,
-                user = newUser,
-                revoked = false,
-                expired = false
-            )
-        )
+        val (accessToken, refreshToken) = saveAccessAndRefreshToken(newUser)
 
         return ResponseEntity.created(location)
             .body(
@@ -51,18 +44,10 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
     @PostMapping("/login")
     fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<ApiResponse<UserResponse>> {
         val user = authService.login(username = loginRequest.username, password = loginRequest.password)
-        val accessToken = jwtService.generateToken(user)
-        val refreshToken = jwtService.generateRefreshToken(user)
 
-        tokenService.revokeAllUserTokens(user)
-        tokenService.saveToken(
-            Token(
-                token = accessToken,
-                user = user,
-                revoked = false,
-                expired = false
-            )
-        )
+        tokenService.revokeAllUserValidTokens(user)
+
+        val (accessToken, refreshToken) = saveAccessAndRefreshToken(user)
 
         return ResponseEntity.ok(
             ApiResponse.Success(
@@ -77,13 +62,14 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
     fun refresh(@RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String): ResponseEntity<ApiResponse<Nothing>> {
         val (user, refreshToken) = authService.validateToken(authHeader)
         if (user == null) return ResponseEntity.badRequest().build()
-        val accessToken = jwtService.generateToken(user)
 
-        tokenService.revokeAllUserTokens(user)
-        tokenService.saveToken(
+        tokenService.revokeUserTokensByGrantType(user, GrantType.ACCESS)
+
+        val accessToken = tokenService.saveToken(
             Token(
-                token = accessToken,
+                token = jwtService.generateToken(user),
                 user = user,
+                grantType = GrantType.ACCESS,
                 revoked = false,
                 expired = false
             )
@@ -91,7 +77,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
 
         return ResponseEntity.ok(
             ApiResponse.Success(
-                accessToken = accessToken,
+                accessToken = accessToken.token,
                 refreshToken = refreshToken
             )
         )
@@ -122,6 +108,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
                 Token(
                     token = accessToken,
                     user = createdUser,
+                    grantType = GrantType.ACCESS,
                     revoked = false,
                     expired = false
                 )
@@ -146,6 +133,30 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
                 return errorResponse(exception)
             }
         )
+    }
+
+    private fun saveAccessAndRefreshToken(user: User): Pair<String, String> {
+        val accessToken = tokenService.saveToken(
+            Token(
+                token = jwtService.generateToken(user),
+                user = user,
+                grantType = GrantType.ACCESS,
+                revoked = false,
+                expired = false
+            )
+        )
+
+        val refreshToken = tokenService.saveToken(
+            Token(
+                token = jwtService.generateRefreshToken(user),
+                user = user,
+                grantType = GrantType.REFRESH,
+                revoked = false,
+                expired = false
+            )
+        )
+
+        return Pair(accessToken.token, refreshToken.token)
     }
 
 }

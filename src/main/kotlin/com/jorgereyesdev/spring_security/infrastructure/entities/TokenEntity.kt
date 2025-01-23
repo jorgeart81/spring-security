@@ -1,7 +1,7 @@
 package com.jorgereyesdev.spring_security.infrastructure.entities
 
+import com.jorgereyesdev.spring_security.domain.models.GrantType
 import com.jorgereyesdev.spring_security.domain.models.TokenType
-import com.jorgereyesdev.spring_security.domain.services.JWTService
 import jakarta.persistence.*
 
 @Entity
@@ -17,6 +17,10 @@ data class TokenEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "token_type")
     var tokenType: TokenType? = TokenType.BEARER,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "grant_type")
+    var grantType: GrantType,
 
     var revoked: Boolean?,
 

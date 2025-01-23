@@ -6,19 +6,16 @@ import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.AuthService
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.domain.services.RoleService
-import com.jorgereyesdev.spring_security.infrastructure.entities.RoleEntity
-import com.jorgereyesdev.spring_security.infrastructure.entities.UserEntity
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toDomain
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toEntity
-import com.jorgereyesdev.spring_security.infrastructure.repositories.RoleRepository
 import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
-import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AuthServiceImpl(
@@ -81,6 +78,11 @@ class AuthServiceImpl(
         require(jwtService.isRefreshTokenValid(refreshToken, username)) {
             "Invalid token"
         }
+
+        val userEntity = userRepository.findByUsernameWithValidTokens(username)
+        val isTokenAllowed = userEntity?.tokens?.any { it.token == refreshToken } ?: false
+
+        if (!isTokenAllowed) throw IllegalArgumentException("Invalid token")
 
         val user = username.let { userRepository.findByUsername(it)?.toDomain() }
 
