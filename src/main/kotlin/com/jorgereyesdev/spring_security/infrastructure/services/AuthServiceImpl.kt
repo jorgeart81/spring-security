@@ -1,11 +1,16 @@
 package com.jorgereyesdev.spring_security.infrastructure.services
 
 import com.jorgereyesdev.spring_security.config.Constants.Authorization
+import com.jorgereyesdev.spring_security.domain.models.RoleName
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.AuthService
 import com.jorgereyesdev.spring_security.domain.services.JWTService
+import com.jorgereyesdev.spring_security.domain.services.RoleService
+import com.jorgereyesdev.spring_security.infrastructure.entities.RoleEntity
+import com.jorgereyesdev.spring_security.infrastructure.entities.UserEntity
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toDomain
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toEntity
+import com.jorgereyesdev.spring_security.infrastructure.repositories.RoleRepository
 import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
@@ -18,6 +23,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthServiceImpl(
     val userRepository: UserRepository,
+    val roleService: RoleService,
     val jwtService: JWTService,
     val passwordEncoder: PasswordEncoder,
     val authenticationManager: AuthenticationManager,
@@ -28,7 +34,13 @@ class AuthServiceImpl(
     override suspend fun register2(user: User): Result<User> {
         return runCatching {
             val userEntity = user.toEntity()
-            userEntity.setSecurePassword(user.password, passwordEncoder).enable()
+
+            roleService.findRoleByRoleName(RoleName.USER) {
+                userEntity
+                    .setSecurePassword(user.password, passwordEncoder)
+                    .addRole(roleEntity = it)
+                    .enable()
+            }
 
             userRepository.save(userEntity).toDomain()
         }.onFailure {
@@ -39,7 +51,13 @@ class AuthServiceImpl(
     @Transactional
     override fun register(user: User): User {
         val userEntity = user.toEntity()
-        userEntity.setSecurePassword(user.password, passwordEncoder).enable()
+
+        roleService.findRoleByRoleName(RoleName.USER) {
+            userEntity
+                .setSecurePassword(user.password, passwordEncoder)
+                .addRole(roleEntity = it)
+                .enable()
+        }
 
         return userRepository.save(userEntity).toDomain()
     }
@@ -68,5 +86,4 @@ class AuthServiceImpl(
 
         return Pair(user, refreshToken)
     }
-
 }
