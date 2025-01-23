@@ -51,9 +51,10 @@ data class UserEntity(
         this.enabled = false
     }
 
-    fun addRole(roleEntity: RoleEntity) {
+    fun addRole(roleEntity: RoleEntity): UserEntity {
         val roleList = HashSet(this.roles)
         roleList.add(roleEntity)
         this.roles = roleList.toMutableList()
+        return this
     }
 }
