@@ -7,6 +7,6 @@ import com.jorgereyesdev.spring_security.presentantion.response.UserResponse
 fun User.toUserResponse() = UserResponse(
     id = this.id,
     username = this.username,
-    enabled = this.enable,
+    enabled = this.enabled,
     roles = this.roles,
 )

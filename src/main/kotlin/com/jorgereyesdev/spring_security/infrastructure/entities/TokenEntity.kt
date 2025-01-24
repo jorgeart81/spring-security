@@ -22,9 +22,9 @@ data class TokenEntity(
     @Column(name = "grant_type")
     var grantType: GrantType,
 
-    var revoked: Boolean?,
+    var revoked: Boolean,
 
-    var expired: Boolean?,
+    var expired: Boolean,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

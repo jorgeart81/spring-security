@@ -4,7 +4,7 @@ data class User(
     var id: Long? = null,
     var username: String,
     var password: String,
-    var enable: Boolean,
+    var enabled: Boolean,
     var tokens: MutableList<Token> = mutableListOf(),
     var roles: MutableList<Role> = mutableListOf(),
 )
