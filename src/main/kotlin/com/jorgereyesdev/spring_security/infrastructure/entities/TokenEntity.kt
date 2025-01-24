@@ -28,7 +28,7 @@ data class TokenEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    var user: UserEntity,
+    var user: UserEntity? = null,
 ) {
     override fun toString(): String {
         return "TokenEntity(id=$id)"

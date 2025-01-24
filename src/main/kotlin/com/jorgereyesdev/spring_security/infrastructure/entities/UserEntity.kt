@@ -21,7 +21,7 @@ data class UserEntity(
     var enabled: Boolean,
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    var tokens: MutableList<TokenEntity>? = mutableListOf(),
+    var tokens: MutableList<TokenEntity> = mutableListOf(),
 
     @JsonIgnoreProperties(value = ["users"])
     @ManyToMany
@@ -31,7 +31,7 @@ data class UserEntity(
         inverseJoinColumns = [JoinColumn(name = "role_id")],
         uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "role_id"])]
     )
-    var roles: MutableList<RoleEntity>? = mutableListOf(),
+    var roles: MutableList<RoleEntity> = mutableListOf(),
 ) {
     override fun toString(): String {
         return "UserEntity(id=$id, username=$username)"

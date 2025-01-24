@@ -9,11 +9,11 @@ fun Token.toEntity(): TokenEntity {
         grantType = this.grantType,
         revoked = this.revoked,
         expired = this.expired,
-        user = this.user.toEntity(),
     )
 
     if (this.id != null) tokenEntity.id = this.id
     if (this.tokenType != null) tokenEntity.tokenType = this.tokenType
+    if (this.user != null) tokenEntity.user = this.user?.toEntity()
 
     return tokenEntity
 }
@@ -25,5 +25,5 @@ fun TokenEntity.toTDomain() = Token(
     grantType = this.grantType,
     revoked = this.revoked ?: false,
     expired = this.expired ?: false,
-    user = this.user.toDomain(),
+    user = this.user?.toDomain(),
 )

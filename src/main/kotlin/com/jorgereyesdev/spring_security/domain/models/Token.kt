@@ -7,7 +7,7 @@ data class Token(
     var grantType: GrantType,
     var revoked: Boolean,
     var expired: Boolean,
-    var user: User,
+    var user: User? = null,
 )
 
 enum class TokenType {

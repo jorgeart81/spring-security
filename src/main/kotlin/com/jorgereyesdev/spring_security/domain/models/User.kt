@@ -5,6 +5,6 @@ data class User(
     var username: String,
     var password: String,
     var enable: Boolean,
-    var tokens: MutableList<Token>? = null,
-    var roles: MutableList<Role>? = null,
+    var tokens: MutableList<Token> = mutableListOf(),
+    var roles: MutableList<Role> = mutableListOf(),
 )
