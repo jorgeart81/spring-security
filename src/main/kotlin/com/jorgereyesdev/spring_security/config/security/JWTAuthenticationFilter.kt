@@ -93,13 +93,3 @@ class JwtAuthenticationFilter(
         SecurityContextHolder.getContext().authentication = authenticationToken
     }
 }
-
-//val username =
-//    runCatching {
-//        val username = jwtService.getUsernameFromToken(token)
-//        val isTokenExpired = jwtService.isTokenExpired(token)
-//
-//        if (username.isNullOrEmpty() || isTokenExpired) throw AuthenticationCredentialsNotFoundException("Invalid jwt")
-//
-//        username
-//    }.onFailure { filterChain.doFilter(request, response) }.getOrThrow()

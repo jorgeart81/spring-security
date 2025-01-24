@@ -4,6 +4,7 @@ import com.jorgereyesdev.spring_security.config.Constants.*
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.domain.services.TokenService
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toDomain
+import com.jorgereyesdev.spring_security.infrastructure.repositories.TokenRepository
 import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -36,6 +37,7 @@ class SecurityConfig(
     val jwtAuthenticationFilter: JwtAuthenticationFilter,
     val jwtAuthenticationEntryPoint: JWTAuthenticationEntryPoint,
     val userRepository: UserRepository,
+    val tokenRepository: TokenRepository,
 ) {
 
     @Bean
@@ -94,12 +96,7 @@ class SecurityConfig(
 
             if (foundToken.expired || foundToken.revoked) throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
 
-            val username = jwtService.getUsernameFromToken(foundToken.token)
-                ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
-            val userEntity = userRepository.findByUsername(username)
-                ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
-
-            userEntity.toDomain()
+            foundToken.user ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
         }
 
         tokenService.revokeAllUserValidTokens(user)
