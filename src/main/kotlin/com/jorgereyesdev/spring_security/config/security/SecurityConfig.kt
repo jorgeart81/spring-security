@@ -1,11 +1,7 @@
 package com.jorgereyesdev.spring_security.config.security
 
 import com.jorgereyesdev.spring_security.config.Constants.*
-import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.domain.services.TokenService
-import com.jorgereyesdev.spring_security.infrastructure.extensions.toDomain
-import com.jorgereyesdev.spring_security.infrastructure.repositories.TokenRepository
-import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -32,12 +28,9 @@ import org.springframework.transaction.annotation.Transactional
 @EnableWebSecurity
 class SecurityConfig(
     val userDetailsService: UserDetailsService,
-    val jwtService: JWTService,
     val tokenService: TokenService,
     val jwtAuthenticationFilter: JwtAuthenticationFilter,
     val jwtAuthenticationEntryPoint: JWTAuthenticationEntryPoint,
-    val userRepository: UserRepository,
-    val tokenRepository: TokenRepository,
 ) {
 
     @Bean
