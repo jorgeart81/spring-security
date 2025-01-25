@@ -4,6 +4,7 @@ import com.jorgereyesdev.spring_security.domain.models.GrantType
 import com.jorgereyesdev.spring_security.domain.models.Token
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.TokenService
+import com.jorgereyesdev.spring_security.infrastructure.extensions.toDomainWithoutTokens
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toEntity
 import com.jorgereyesdev.spring_security.infrastructure.extensions.toTDomain
 import com.jorgereyesdev.spring_security.infrastructure.repositories.TokenRepository
@@ -27,7 +28,10 @@ class TokenServiceImpl(private val tokenRepository: TokenRepository) : TokenServ
     }
 
     @Transactional(readOnly = true)
-    override fun findByToken(value: String): Token? = tokenRepository.findByToken(value)?.toTDomain()
+    override fun findByToken(value: String): Token?  {
+        val tokens = tokenRepository.findByToken(value)
+        return  tokens?.toTDomain{ it.toDomainWithoutTokens() }
+    }
 
     @Transactional
     override fun saveToken(token: Token): Token {

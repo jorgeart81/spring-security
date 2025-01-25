@@ -57,3 +57,16 @@ fun UserEntity.toDomain() = User(
         )
     }.toMutableList()
 )
+
+fun UserEntity.toDomainWithoutTokens() = User(
+    id = this.id,
+    username = this.username,
+    password = this.password,
+    enabled = this.enabled,
+    roles = this.roles.map {
+        Role(
+            id = it.id,
+            name = it.name,
+        )
+    }.toMutableList()
+)
