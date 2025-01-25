@@ -6,9 +6,14 @@ import jakarta.validation.constraints.Size
 data class LoginRequest(
     @NotBlank
     @Size(min = 3, max = 25)
-    val username: String,
+    var username: String,
 
     @NotBlank
     @Size(min = 6, max = 50)
-    val password: String,
-)
+    var password: String,
+) {
+    fun clean() {
+        this.username = ""
+        this.password = ""
+    }
+}

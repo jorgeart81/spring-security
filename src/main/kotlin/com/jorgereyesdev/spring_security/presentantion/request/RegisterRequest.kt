@@ -7,12 +7,17 @@ import jakarta.validation.constraints.Size
 data class RegisterRequest(
     @NotBlank
     @Size(min = 3, max = 25)
-    val username: String,
+    var username: String,
 
     @NotBlank
     @Size(min = 6, max = 50)
-    val password: String,
-)
+    var password: String,
+) {
+    fun clean() {
+        this.username = ""
+        this.password = ""
+    }
+}
 
 fun RegisterRequest.toDomain() = User(
     username = this.username,

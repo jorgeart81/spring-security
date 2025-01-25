@@ -32,6 +32,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
 
         val (accessToken, refreshToken) = saveAccessAndRefreshToken(newUser)
 
+        registerRequest.clean()
         return ResponseEntity.created(location)
             .body(
                 ApiResponse.Success(
@@ -49,6 +50,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
 
         val (accessToken, refreshToken) = saveAccessAndRefreshToken(user)
 
+        loginRequest.clean()
         return ResponseEntity.ok(
             ApiResponse.Success(
                 data = user.toUserResponse(),
