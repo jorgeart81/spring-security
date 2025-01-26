@@ -1,6 +1,7 @@
 package com.jorgereyesdev.spring_security.presentantion.request
 
 import com.jorgereyesdev.spring_security.domain.models.User
+import com.jorgereyesdev.spring_security.infrastructure.extensions.toEntity
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
@@ -22,5 +23,8 @@ data class RegisterRequest(
 fun RegisterRequest.toDomain() = User(
     username = this.username,
     password = this.password,
+    accountNonExpired = true,
+    accountNonLocked = true,
+    credentialsNonExpired = true,
     enabled = true,
 )

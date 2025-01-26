@@ -17,6 +17,15 @@ data class UserEntity(
     @Column(nullable = false)
     var password: String,
 
+    @Column(name = "account_non_expired" ,columnDefinition = "bit(1) default 1", nullable = false)
+    var accountNonExpired:Boolean,
+
+    @Column(name = "account_non_locked" ,columnDefinition = "bit(1) default 1", nullable = false)
+    var accountNonLocked:Boolean,
+
+    @Column(name = "credentials_non_expired" ,columnDefinition = "bit(1) default 1", nullable = false)
+    var credentialsNonExpired:Boolean,
+
     @Column(columnDefinition = "bit(1) default 1", nullable = false)
     var enabled: Boolean,
 

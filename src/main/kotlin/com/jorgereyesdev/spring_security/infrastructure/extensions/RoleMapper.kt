@@ -13,6 +13,9 @@ fun Role.toEntity(): RoleEntity {
                 id = it.id,
                 username = it.username,
                 password = it.password,
+                accountNonExpired = it.accountNonExpired,
+                accountNonLocked = it.accountNonLocked,
+                credentialsNonExpired = it.credentialsNonExpired,
                 enabled = it.enabled,
             )
         }.toMutableList()
@@ -31,6 +34,9 @@ fun RoleEntity.toDomain() = Role(
             id = it.id,
             username = it.username,
             password = it.password,
+            accountNonExpired = it.accountNonExpired,
+            accountNonLocked = it.accountNonLocked,
+            credentialsNonExpired = it.credentialsNonExpired,
             enabled = it.enabled,
         )
     }.toMutableList()

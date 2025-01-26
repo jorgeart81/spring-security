@@ -11,6 +11,9 @@ fun User.toEntity(): UserEntity {
     val userEntity = UserEntity(
         username = this.username,
         password = this.password,
+        accountNonExpired = this.accountNonExpired,
+        accountNonLocked = this.accountNonLocked,
+        credentialsNonExpired = this.credentialsNonExpired,
         enabled = this.enabled,
         tokens = this.tokens.map {
             TokenEntity(
@@ -39,6 +42,9 @@ fun UserEntity.toDomain() = User(
     id = this.id,
     username = this.username,
     password = this.password,
+    accountNonExpired = this.accountNonExpired,
+    accountNonLocked = this.accountNonLocked,
+    credentialsNonExpired = this.credentialsNonExpired,
     enabled = this.enabled,
     tokens = this.tokens.map {
         Token(
@@ -62,6 +68,9 @@ fun UserEntity.toDomainWithoutTokens() = User(
     id = this.id,
     username = this.username,
     password = this.password,
+    accountNonExpired = this.accountNonExpired,
+    accountNonLocked = this.accountNonLocked,
+    credentialsNonExpired = this.credentialsNonExpired,
     enabled = this.enabled,
     roles = this.roles.map {
         Role(
