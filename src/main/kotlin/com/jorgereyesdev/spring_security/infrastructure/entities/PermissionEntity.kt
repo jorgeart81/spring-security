@@ -14,7 +14,7 @@ data class PermissionEntity(
     val name: PermissionName,
 
     @ManyToMany(mappedBy = "permissions")
-    val roles: Set<RoleEntity> = setOf(),
+    val roles: MutableSet<RoleEntity> = mutableSetOf(),
 ) {
     override fun toString(): String {
         return "PermissionEntity(id=$id)"
