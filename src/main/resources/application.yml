@@ -14,7 +14,7 @@ spring:
     password: ${MYSQL_PASSWORD:123456}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
