@@ -25,7 +25,7 @@ data class RoleEntity(
         inverseJoinColumns = [JoinColumn(name = "permission_id")],
         uniqueConstraints = [UniqueConstraint(columnNames = ["role_id", "permission_id"])]
     )
-    val permissions: MutableSet<PermissionEntity> = mutableSetOf(),
+    val permissions: MutableList<PermissionEntity?> = mutableListOf(),
 ) {
     override fun toString(): String {
         return "RoleEntity(id=$id)"

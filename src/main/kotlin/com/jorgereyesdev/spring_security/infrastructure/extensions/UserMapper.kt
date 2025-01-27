@@ -61,7 +61,7 @@ fun UserEntity.toDomain() = User(
             id = it.id,
             name = it.name,
         )
-    }.toMutableList()
+    }.toMutableSet()
 )
 
 fun UserEntity.toDomainWithoutTokens() = User(
@@ -77,5 +77,5 @@ fun UserEntity.toDomainWithoutTokens() = User(
             id = it.id,
             name = it.name,
         )
-    }.toMutableList()
+    }.toMutableSet()
 )

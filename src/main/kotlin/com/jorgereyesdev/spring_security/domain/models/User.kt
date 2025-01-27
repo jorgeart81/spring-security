@@ -9,5 +9,5 @@ data class User(
     var credentialsNonExpired: Boolean,
     var enabled: Boolean,
     var tokens: MutableList<Token> = mutableListOf(),
-    var roles: MutableList<Role> = mutableListOf(),
+    var roles: MutableSet<Role> = mutableSetOf(),
 )

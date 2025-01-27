@@ -20,15 +20,7 @@ fun Token.toEntity(): TokenEntity {
     return tokenEntity
 }
 
-fun TokenEntity.toTDomain() = Token(
-    id = this.id,
-    token = this.token,
-    tokenType = this.tokenType,
-    grantType = this.grantType,
-    revoked = this.revoked,
-    expired = this.expired,
-    user = this.user?.toDomain(),
-)
+fun TokenEntity.toTDomain() = this.toTDomain { user -> user.toDomain() }
 
 fun TokenEntity.toTDomain(userMapper: (UserEntity) -> User) = Token(
     id = this.id,

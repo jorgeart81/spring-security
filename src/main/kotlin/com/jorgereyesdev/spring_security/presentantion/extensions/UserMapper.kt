@@ -8,5 +8,5 @@ fun User.toUserResponse() = UserResponse(
     id = this.id,
     username = this.username,
     enabled = this.enabled,
-    roles = this.roles,
+    roles = this.roles.toMutableList(),
 )
