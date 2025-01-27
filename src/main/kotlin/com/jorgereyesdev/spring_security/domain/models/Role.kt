@@ -30,5 +30,4 @@ fun RoleName.isAllowedTo(permissions: (HashSet<PermissionName>) -> Unit) {
             )
         )
     }
-
 }

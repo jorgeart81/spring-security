@@ -16,7 +16,16 @@ data class RoleEntity(
 
     @JsonIgnoreProperties(value = ["roles"])
     @ManyToMany(mappedBy = "roles")
-    val users: MutableList<UserEntity> = mutableListOf()
+    val users: MutableList<UserEntity> = mutableListOf(),
+
+    @ManyToMany(cascade = [CascadeType.ALL])
+    @JoinTable(
+        name = "role_permission",
+        joinColumns = [JoinColumn(name = "role_id")],
+        inverseJoinColumns = [JoinColumn(name = "permission_id")],
+        uniqueConstraints = [UniqueConstraint(columnNames = ["role_id", "permission_id"])]
+    )
+    val permissions: Set<PermissionEntity> = setOf(),
 ) {
     override fun toString(): String {
         return "RoleEntity(id=$id)"
