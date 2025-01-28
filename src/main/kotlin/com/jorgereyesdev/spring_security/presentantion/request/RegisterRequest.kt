@@ -23,6 +23,7 @@ data class RegisterRequest(
 fun RegisterRequest.toDomain() = User(
     username = this.username,
     password = this.password,
+    securityStamp = "",
     accountNonExpired = true,
     accountNonLocked = true,
     credentialsNonExpired = true,

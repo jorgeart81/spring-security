@@ -4,6 +4,7 @@ data class User(
     var id: Long? = null,
     var username: String,
     var password: String,
+    var securityStamp: String,
     var accountNonExpired: Boolean,
     var accountNonLocked: Boolean,
     var credentialsNonExpired: Boolean,

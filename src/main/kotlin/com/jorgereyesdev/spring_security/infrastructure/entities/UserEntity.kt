@@ -3,6 +3,8 @@ package com.jorgereyesdev.spring_security.infrastructure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.security.MessageDigest
+import java.util.UUID
 
 @Entity
 @Table(name = "users")
@@ -17,14 +19,17 @@ data class UserEntity(
     @Column(nullable = false)
     var password: String,
 
-    @Column(name = "account_non_expired" ,columnDefinition = "bit(1) default 1", nullable = false)
-    var accountNonExpired:Boolean,
+    @Column(name = "security_stamp", nullable = false)
+    var securityStamp: String,
 
-    @Column(name = "account_non_locked" ,columnDefinition = "bit(1) default 1", nullable = false)
-    var accountNonLocked:Boolean,
+    @Column(name = "account_non_expired", columnDefinition = "bit(1) default 1", nullable = false)
+    var accountNonExpired: Boolean,
 
-    @Column(name = "credentials_non_expired" ,columnDefinition = "bit(1) default 1", nullable = false)
-    var credentialsNonExpired:Boolean,
+    @Column(name = "account_non_locked", columnDefinition = "bit(1) default 1", nullable = false)
+    var accountNonLocked: Boolean,
+
+    @Column(name = "credentials_non_expired", columnDefinition = "bit(1) default 1", nullable = false)
+    var credentialsNonExpired: Boolean,
 
     @Column(columnDefinition = "bit(1) default 1", nullable = false)
     var enabled: Boolean,
@@ -63,6 +68,17 @@ data class UserEntity(
         val roleList = HashSet(this.roles)
         roleList.add(roleEntity)
         this.roles = roleList.toMutableList()
+        return this
+    }
+
+    fun generateSecurityStamp(): UserEntity {
+        val uuid = UUID.randomUUID().toString()
+        val hash = MessageDigest.getInstance("SHA-256").digest(uuid.toByteArray())
+
+        securityStamp = hash
+            .joinToString("") { "%02x".format(it) }
+            .take(32)
+            .uppercase()
         return this
     }
 }

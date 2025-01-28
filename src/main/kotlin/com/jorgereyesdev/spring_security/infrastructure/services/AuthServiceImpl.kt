@@ -35,6 +35,7 @@ class AuthServiceImpl(
             roleService.findRoleByRoleName(RoleName.USER) {
                 userEntity
                     .setSecurePassword(user.password, passwordEncoder)
+                    .generateSecurityStamp()
                     .addRole(roleEntity = it)
                     .enable()
             }
@@ -52,6 +53,7 @@ class AuthServiceImpl(
         roleService.findRoleByRoleName(RoleName.USER) {
             userEntity
                 .setSecurePassword(user.password, passwordEncoder)
+                .generateSecurityStamp()
                 .addRole(roleEntity = it)
                 .enable()
         }
