@@ -55,10 +55,10 @@ class CustomUserDetails private constructor(
                 password = _password,
                 username = _username,
                 authorities = _authorities,
-                accountNonExpired = _accountExpired,
-                accountNonLocked = _accountLocked,
-                credentialsNonExpired = _credentialsExpired,
-                enabled = _disabled,
+                accountNonExpired = !_accountExpired,
+                accountNonLocked = !_accountLocked,
+                credentialsNonExpired = !_credentialsExpired,
+                enabled = !_disabled,
                 securityStamp = _securityStamp
             )
         }

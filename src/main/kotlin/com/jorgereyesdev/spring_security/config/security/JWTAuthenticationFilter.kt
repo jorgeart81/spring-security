@@ -3,7 +3,6 @@ package com.jorgereyesdev.spring_security.config.security
 import com.jorgereyesdev.spring_security.config.Constants.Authorization
 import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
 import com.jorgereyesdev.spring_security.domain.services.JWTService
-import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
 import com.jorgereyesdev.spring_security.infrastructure.services.AuthServiceImpl
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -23,7 +22,6 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    val userRepository: UserRepository,
     val jwtService: JWTService,
     val userDetailsService: UserDetailsService
 ) :
