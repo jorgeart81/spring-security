@@ -1,6 +1,8 @@
 package com.jorgereyesdev.spring_security.config.security
 
-import com.jorgereyesdev.spring_security.config.Constants.*
+import com.jorgereyesdev.spring_security.config.Constants
+import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
+import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.domain.services.TokenService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -80,7 +82,7 @@ class SecurityConfig(
 
     @Transactional
     private fun logout(token: String) {
-        require(token.startsWith(Authorization.BEARER)) { ErrorMessages.INVALID_TOKEN }
+        require(token.startsWith(Constants.BEARER)) { ErrorMessages.INVALID_TOKEN }
 
         val jwtToken = token.substring(7)
         val user = run {

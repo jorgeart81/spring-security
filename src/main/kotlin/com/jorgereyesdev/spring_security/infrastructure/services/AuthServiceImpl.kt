@@ -1,6 +1,6 @@
 package com.jorgereyesdev.spring_security.infrastructure.services
 
-import com.jorgereyesdev.spring_security.config.Constants.Authorization
+import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.domain.models.RoleName
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.AuthService
@@ -70,7 +70,7 @@ class AuthServiceImpl(
 
     @Transactional
     override fun validateToken(authHeader: String?): Pair<User?, String> {
-        if (authHeader.isNullOrEmpty() || !authHeader.startsWith(Authorization.BEARER)) {
+        if (authHeader.isNullOrEmpty() || !authHeader.startsWith(Constants.BEARER)) {
             throw IllegalArgumentException("Invalid token")
         }
 

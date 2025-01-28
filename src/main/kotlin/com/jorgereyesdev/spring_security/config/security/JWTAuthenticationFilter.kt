@@ -1,6 +1,7 @@
 package com.jorgereyesdev.spring_security.config.security
 
-import com.jorgereyesdev.spring_security.config.Constants.Authorization
+
+import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.infrastructure.services.AuthServiceImpl
@@ -70,7 +71,7 @@ class JwtAuthenticationFilter(
     private fun getTokenFromRequest(request: HttpServletRequest): String? {
         val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
 
-        return if (StringUtils.hasText(authHeader) && authHeader.startsWith(Authorization.BEARER)) {
+        return if (StringUtils.hasText(authHeader) && authHeader.startsWith(Constants.BEARER)) {
             authHeader.substring(7)
         } else {
             null

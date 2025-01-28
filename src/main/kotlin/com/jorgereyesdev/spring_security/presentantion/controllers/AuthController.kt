@@ -1,5 +1,6 @@
 package com.jorgereyesdev.spring_security.presentantion.controllers
 
+import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.domain.models.GrantType
 import com.jorgereyesdev.spring_security.domain.models.Token
@@ -14,6 +15,7 @@ import com.jorgereyesdev.spring_security.presentantion.request.RegisterRequest
 import com.jorgereyesdev.spring_security.presentantion.request.toDomain
 import com.jorgereyesdev.spring_security.presentantion.response.ApiResponse
 import com.jorgereyesdev.spring_security.presentantion.response.UserResponse
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -25,7 +27,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 class AuthController(val authService: AuthService, val tokenService: TokenService, val jwtService: JWTService) {
 
     @PostMapping("/register")
-    fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<ApiResponse<Nothing>> {
+    fun register(
+        @RequestBody registerRequest: RegisterRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<ApiResponse<Nothing>> {
         val newUser = authService.register(registerRequest.toDomain())
         val location =
             ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newUser.id)
@@ -34,6 +39,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         val (accessToken, refreshToken) = saveAccessAndRefreshToken(newUser)
 
         registerRequest.clean()
+        addHeaderToken(response, accessToken)
         return ResponseEntity.created(location)
             .body(
                 ApiResponse.Success(
@@ -44,7 +50,10 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<ApiResponse<UserResponse>> {
+    fun login(
+        @RequestBody loginRequest: LoginRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<ApiResponse<UserResponse>> {
         val user = authService.login(username = loginRequest.username, password = loginRequest.password)
 
         tokenService.revokeAllUserValidTokens(user)
@@ -52,6 +61,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         val (accessToken, refreshToken) = saveAccessAndRefreshToken(user)
 
         loginRequest.clean()
+        addHeaderToken(response, accessToken)
         return ResponseEntity.ok(
             ApiResponse.Success(
                 data = user.toUserResponse(),
@@ -62,7 +72,10 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
     }
 
     @PostMapping("/refresh")
-    fun refresh(@RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String): ResponseEntity<ApiResponse<Nothing>> {
+    fun refresh(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String,
+        response: HttpServletResponse
+    ): ResponseEntity<ApiResponse<Nothing>> {
         val (user, refreshToken) = authService.validateToken(authHeader)
         if (user == null) return ResponseEntity.badRequest().build()
 
@@ -78,6 +91,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
             )
         )
 
+        addHeaderToken(response, accessToken.token)
         return ResponseEntity.ok(
             ApiResponse.Success(
                 accessToken = accessToken.token,
@@ -102,7 +116,10 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
     }
 
     @PostMapping("/register2")
-    suspend fun register2(@RequestBody registerRequest: RegisterRequest): ResponseEntity<ApiResponse<UserResponse>> {
+    suspend fun register2(
+        @RequestBody registerRequest: RegisterRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<ApiResponse<UserResponse>> {
         authService.register2(registerRequest.toDomain()).mapCatching { createdUser ->
             val accessToken = jwtService.generateToken(createdUser)
             val refreshToken = jwtService.generateRefreshToken(createdUser)
@@ -125,6 +142,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
                         .toUri()
                 val (accessToken, refreshToken) = tokens
 
+                addHeaderToken(response, accessToken)
                 return ResponseEntity.created(location).body(
                     ApiResponse.Success(
                         accessToken = accessToken,
@@ -162,6 +180,10 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         )
 
         return Pair(accessToken.token, refreshToken.token)
+    }
+
+    private fun addHeaderToken(response: HttpServletResponse, token: String) {
+        response.addHeader(Constants.AUTHORIZATION, "${Constants.BEARER} $token")
     }
 
 }
