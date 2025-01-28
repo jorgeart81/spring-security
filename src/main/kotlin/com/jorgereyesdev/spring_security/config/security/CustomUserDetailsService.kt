@@ -13,10 +13,11 @@ class CustomUserDetailsService(val userRepository: UserRepository) : UserDetails
         val user = username?.let { userRepository.findByUsername(username) }
             ?: throw UsernameNotFoundException("User not found")
 
-        return User.builder()
+        return CustomUserDetails.builder()
             .username(user.username)
             .password(user.password)
             .disabled(!user.enabled)
+            .securityStamp(user.securityStamp)
             .build()
     }
 }
