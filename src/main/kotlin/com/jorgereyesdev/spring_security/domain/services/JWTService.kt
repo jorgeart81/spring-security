@@ -9,7 +9,7 @@ interface JWTService {
 
     fun isTokenExpired(token: String): Boolean
 
-    fun isTokenValid(token: String, username: String): Boolean
+    fun isTokenValid(token: String, username: String, securityStamp: String?): Boolean
 
     fun isRefreshTokenValid(token: String, username: String): Boolean
 

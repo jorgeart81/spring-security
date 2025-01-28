@@ -3,6 +3,7 @@ package com.jorgereyesdev.spring_security.presentantion.controllers
 import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.domain.models.GrantType
 import com.jorgereyesdev.spring_security.domain.models.Token
+import com.jorgereyesdev.spring_security.domain.models.TokenType
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.AuthService
 import com.jorgereyesdev.spring_security.domain.services.JWTService
@@ -142,6 +143,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
             Token(
                 token = jwtService.generateToken(user),
                 user = user,
+                tokenType = TokenType.BEARER,
                 grantType = GrantType.ACCESS,
                 revoked = false,
                 expired = false
@@ -152,6 +154,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
             Token(
                 token = jwtService.generateRefreshToken(user),
                 user = user,
+                tokenType = TokenType.BEARER,
                 grantType = GrantType.REFRESH,
                 revoked = false,
                 expired = false

@@ -1,6 +1,5 @@
 package com.jorgereyesdev.spring_security.infrastructure.services
 
-import com.jorgereyesdev.spring_security.config.Constants.Jwt
 import com.jorgereyesdev.spring_security.config.EnvironmentVariables
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.JWTService
@@ -23,7 +22,7 @@ class JWTServiceImpl : JWTService {
         return buildToken(
             user = user,
             expiration = EnvironmentVariables.Jwt.EXPIRATION,
-            extraClaims = mapOf("username" to user.username)
+            extraClaims = mapOf(USERNAME to user.username, SECURITY_STAMP to user.securityStamp)
         )
     }
 
@@ -31,7 +30,7 @@ class JWTServiceImpl : JWTService {
         return buildToken(
             user = user,
             expiration = EnvironmentVariables.Jwt.REFRESH_EXPIRATION,
-            extraClaims = mapOf(Jwt.GRANT_TYPE to Jwt.REFRESH_TOKEN)
+            extraClaims = mapOf(GRANT_TYPE to REFRESH_TOKEN, SECURITY_STAMP to user.securityStamp)
         )
     }
 
@@ -39,18 +38,22 @@ class JWTServiceImpl : JWTService {
         return getExpiration(token).before(Date(System.currentTimeMillis()))
     }
 
-    override fun isTokenValid(token: String, username: String): Boolean {
-        val tokenUsername = getUsernameFromToken(token)
-        return tokenUsername.equals(username) && !isTokenExpired(token)
+    override fun isTokenValid(token: String, username: String, securityStamp: String?): Boolean {
+        val (subject, stamp) = getClaims(token) { claims ->
+            Pair(claims.subject, claims[SECURITY_STAMP].toString())
+        }
+        val isValidUsername = username == subject
+        val isValidSecurityStamp = securityStamp.equals(stamp)
+        return isValidUsername && isValidSecurityStamp && !isTokenExpired(token)
 
     }
 
     override fun isRefreshTokenValid(token: String, username: String): Boolean {
         val (subject, grantType) = getClaims(token) { claims ->
-            claims[Jwt.GRANT_TYPE] as? String
-            Pair(claims.subject, claims[Jwt.GRANT_TYPE] as? String)
+            claims[GRANT_TYPE] as? String
+            Pair(claims.subject, claims[GRANT_TYPE] as? String)
         }
-        return subject.equals(username) && grantType.equals(Jwt.REFRESH_TOKEN) && !isTokenExpired(token)
+        return subject.equals(username) && grantType.equals(REFRESH_TOKEN) && !isTokenExpired(token)
     }
 
     override fun getUsernameFromToken(token: String): String? {
@@ -96,5 +99,13 @@ class JWTServiceImpl : JWTService {
 
     private fun getExpiration(token: String): Date {
         return getClaims(token, Claims::getExpiration)
+    }
+
+    companion object {
+        const val USERNAME = "username"
+        const val GRANT_TYPE = "grantType"
+        const val SECURITY_STAMP = "securityStamp"
+        const val ACCESS_TOKEN = "access"
+        const val REFRESH_TOKEN = "refresh"
     }
 }

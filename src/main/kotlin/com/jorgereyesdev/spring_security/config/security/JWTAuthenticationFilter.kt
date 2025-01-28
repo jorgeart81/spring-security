@@ -1,6 +1,7 @@
 package com.jorgereyesdev.spring_security.config.security
 
-import com.jorgereyesdev.spring_security.config.Constants.*
+import com.jorgereyesdev.spring_security.config.Constants.Authorization
+import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
 import com.jorgereyesdev.spring_security.infrastructure.services.AuthServiceImpl
@@ -52,15 +53,8 @@ class JwtAuthenticationFilter(
                     throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
                 }
 
-                val userDetails = userDetailsService.loadUserByUsername(username)
-                val userEntity = userRepository.findByUsernameWithValidTokens(userDetails.username)
-                val isTokenAllowed = userEntity?.tokens?.any { it.token == token } ?: false
-
-                if (userEntity == null || !isTokenAllowed) {
-                    throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
-                }
-
-                val isTokenValid = jwtService.isTokenValid(token, userEntity.username)
+                val userDetails = userDetailsService.loadUserByUsername(username) as CustomUserDetails
+                val isTokenValid = jwtService.isTokenValid(token, userDetails.username, userDetails.securityStamp)
 
                 if (!isTokenValid) throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
 

@@ -1,7 +1,6 @@
 package com.jorgereyesdev.spring_security.config.security
 
 import com.jorgereyesdev.spring_security.infrastructure.repositories.UserRepository
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
