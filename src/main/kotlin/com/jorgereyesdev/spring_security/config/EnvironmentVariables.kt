@@ -9,10 +9,10 @@ class EnvironmentVariables {
     @Value("\${spring.security.jwt.secret-key}")
     private lateinit var jwtSecretKey: String
 
-    @Value("\${spring.security.jwt.expiration}")
+    @Value("\${spring.security.jwt.expiration:86400000}")
     private var jwtExpiration: Int = 86400000 // a day
 
-    @Value("\${spring.security.jwt.refresh-token.expiration}")
+    @Value("\${spring.security.jwt.refresh-token.expiration:604800000}")
     private var jwtRefreshExpiration: Int = 604800000 // 7 days
 
 
