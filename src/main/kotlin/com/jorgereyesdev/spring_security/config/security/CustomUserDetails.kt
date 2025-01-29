@@ -11,7 +11,7 @@ class CustomUserDetails private constructor(
     val accountNonExpired: Boolean = true,
     val accountNonLocked: Boolean = true,
     val credentialsNonExpired: Boolean = true,
-    val enabled: Boolean = false,
+    val enabled: Boolean = true,
     val securityStamp: String? = null,
 ) : UserDetails, CredentialsContainer {
 
@@ -20,6 +20,14 @@ class CustomUserDetails private constructor(
     override fun getPassword(): String = this.password
 
     override fun getUsername(): String = this.username
+
+    override fun isAccountNonExpired(): Boolean = this.accountNonExpired
+
+    override fun isAccountNonLocked(): Boolean = this.accountNonLocked
+
+    override fun isCredentialsNonExpired(): Boolean = this.credentialsNonExpired
+
+    override fun isEnabled(): Boolean = this.enabled
 
     override fun eraseCredentials() {
         this.password = ""
@@ -51,8 +59,9 @@ class CustomUserDetails private constructor(
         fun securityStamp(securityStamp: String) = apply { this._securityStamp = securityStamp }
 
         fun build(): CustomUserDetails {
+            val encodedPassword = _passwordEncoder(_password)
             return CustomUserDetails(
-                password = _password,
+                password = encodedPassword,
                 username = _username,
                 authorities = _authorities,
                 accountNonExpired = !_accountExpired,
