@@ -22,6 +22,7 @@ class JWTAuthenticationEntryPoint : AuthenticationEntryPoint {
             authException?.message.toString()
         )
 
+        response?.setHeader("Set-Cookie", "JSESSIONID=; Path=/; HttpOnly; Secure; Max-Age=0; SameSite=Strict")
         response?.contentType = "application/json"
         response?.characterEncoding = "UTF-8"
         response?.status = HttpServletResponse.SC_UNAUTHORIZED
