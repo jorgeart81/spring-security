@@ -1,7 +1,10 @@
 package com.jorgereyesdev.spring_security.config.security
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.jorgereyesdev.spring_security.presentantion.response.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.stereotype.Component
@@ -13,6 +16,15 @@ class JWTAuthenticationEntryPoint : AuthenticationEntryPoint {
         response: HttpServletResponse?,
         authException: AuthenticationException?
     ) {
-        response?.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException?.message)
+        val objectMapper = ObjectMapper()
+        val responseError = ApiResponse.Error(
+            HttpStatus.UNAUTHORIZED,
+            authException?.message.toString()
+        )
+
+        response?.contentType = "application/json"
+        response?.characterEncoding = "UTF-8"
+        response?.status = HttpServletResponse.SC_UNAUTHORIZED
+        response?.writer?.write(objectMapper.writeValueAsString(responseError))
     }
 }
