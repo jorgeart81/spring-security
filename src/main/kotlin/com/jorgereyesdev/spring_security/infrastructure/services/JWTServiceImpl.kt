@@ -61,17 +61,19 @@ class JWTServiceImpl : JWTService {
     }
 
     private fun buildToken(user: User, expiration: Int, extraClaims: Map<String, Any> = mapOf()): String {
+        val currentDate = Date(System.currentTimeMillis())
+        val expirationDate = Date(System.currentTimeMillis() + expiration)
         return Jwts.builder()
             .id(user.id.toString())
             .claims(extraClaims)
             .subject(user.username)
-            .issuedAt(Date(System.currentTimeMillis()))
-            .expiration(Date(System.currentTimeMillis() + expiration))
+            .issuedAt(currentDate) // Timestamp when the JWT was created.
+            .expiration(expirationDate) // After this timestamp should not be used.
             .signWith(getSignInKey(), Jwts.SIG.HS256)
             .compact()
     }
 
-    private fun getSignInKey(): SecretKey? {
+    private fun getSignInKey(): SecretKey {
         val keyBytes: ByteArray = Decoders.BASE64.decode(EnvironmentVariables.Jwt.SECRET_KEY)
         return Keys.hmacShaKeyFor(keyBytes)
     }

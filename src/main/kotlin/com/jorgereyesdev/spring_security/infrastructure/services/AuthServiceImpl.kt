@@ -13,6 +13,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -63,7 +64,8 @@ class AuthServiceImpl(
 
     @Transactional
     override fun login(username: String, password: String): User {
-        authenticationManager.authenticate(UsernamePasswordAuthenticationToken(username, password))
+        authenticate(username, password)
+
         val user = userRepository.findByUsername(username) ?: throw NoSuchElementException("User not found")
         return user.toDomain()
     }
@@ -89,5 +91,10 @@ class AuthServiceImpl(
         val user = username.let { userRepository.findByUsername(it)?.toDomain() }
 
         return Pair(user, refreshToken)
+    }
+
+    private fun authenticate(username: String, password: String) {
+        val authentication = authenticationManager.authenticate(UsernamePasswordAuthenticationToken(username, password))
+        SecurityContextHolder.getContext().authentication = authentication
     }
 }

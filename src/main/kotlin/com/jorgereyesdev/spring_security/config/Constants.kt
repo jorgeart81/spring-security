@@ -15,5 +15,6 @@ class Constants {
 
     object ErrorMessages {
         const val INVALID_TOKEN = "Invalid Token"
+        const val BAD_CREDENTIALS = "Bad credentials"
     }
 }
