@@ -1,7 +1,6 @@
 package com.jorgereyesdev.spring_security.presentantion.request
 
 import com.jorgereyesdev.spring_security.domain.models.User
-import com.jorgereyesdev.spring_security.infrastructure.extensions.toEntity
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
