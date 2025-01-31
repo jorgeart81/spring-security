@@ -3,6 +3,7 @@ package com.jorgereyesdev.spring_security.config.security
 
 import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
+import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.infrastructure.services.AuthServiceImpl
 import jakarta.servlet.FilterChain
@@ -32,7 +33,7 @@ class JwtAuthenticationFilter(
     override fun doFilterInternal(
         request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain
     ) {
-        if (request.servletPath.contains("/auth")) {
+        if (isPublicRoute(request)) {
             filterChain.doFilter(request, response)
             return
         }
@@ -84,5 +85,12 @@ class JwtAuthenticationFilter(
                 details = WebAuthenticationDetailsSource().buildDetails(request)
             }
         SecurityContextHolder.getContext().authentication = authenticationToken
+    }
+
+    private fun isPublicRoute(request: HttpServletRequest): Boolean {
+        val publicRoutes = listOf("${Routes.AUTH}/register", "${Routes.AUTH}/login")
+        return publicRoutes.any {
+            request.servletPath.contains(it)
+        }
     }
 }

@@ -88,9 +88,7 @@ class AuthServiceImpl(
 
         if (!isTokenAllowed) throw IllegalArgumentException("Invalid token")
 
-        val user = username.let { userRepository.findByUsername(it)?.toDomain() }
-
-        return Pair(user, refreshToken)
+        return Pair(userEntity?.toDomain(), refreshToken)
     }
 
     private fun authenticate(username: String, password: String) {
