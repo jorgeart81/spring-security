@@ -3,6 +3,7 @@ package com.jorgereyesdev.spring_security.config.security
 import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
 import com.jorgereyesdev.spring_security.config.Constants.Routes
+import com.jorgereyesdev.spring_security.domain.models.RoleName
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.domain.services.TokenService
 import org.springframework.context.annotation.Bean
@@ -62,11 +63,13 @@ class SecurityConfig(
             exceptionHandling { authenticationEntryPoint = jwtAuthenticationEntryPoint }
             authorizeHttpRequests {
                 authorize("${Routes.AUTH}/**", permitAll)
-                authorize("${Routes.USERS}/**", permitAll)
+                authorize("${Routes.USERS}/**", hasRole(RoleName.ADMIN.name))
+                authorize("${Routes.PRODUCTS}/**", hasAnyRole(RoleName.ADMIN.name, RoleName.USER.name))
                 authorize(anyRequest, authenticated)
             }
             sessionManagement { SessionCreationPolicy.STATELESS }
             addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthenticationFilter)
+//            anonymous { disable() }
         }
 
         httpSecurity.authenticationProvider(authenticationProvider()).logout {

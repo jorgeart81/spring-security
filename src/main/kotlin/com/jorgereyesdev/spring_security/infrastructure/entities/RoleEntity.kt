@@ -18,7 +18,8 @@ data class RoleEntity(
     @ManyToMany(mappedBy = "roles")
     val users: MutableList<UserEntity> = mutableListOf(),
 
-    @ManyToMany(cascade = [CascadeType.ALL])
+    @JsonIgnoreProperties(value = ["roles"])
+    @ManyToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     @JoinTable(
         name = "role_permission",
         joinColumns = [JoinColumn(name = "role_id")],
