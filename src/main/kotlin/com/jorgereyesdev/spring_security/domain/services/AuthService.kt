@@ -6,5 +6,5 @@ interface AuthService {
     fun register(user: User): User
     suspend fun register2(user: User): Result<User>
     fun login(username: String, password: String): User
-    fun validateToken(authHeader: String?): Pair<User?, String>
+    fun validateToken(refreshToken: String): User?
 }

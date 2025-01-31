@@ -4,7 +4,7 @@ import com.jorgereyesdev.spring_security.config.EnvironmentVariables.*
 import jakarta.servlet.http.Cookie
 
 object RefreshCookie {
-    private const val NAME = "refresh_token"
+    private const val NAME = Api.COOKIE_NAME
     private const val PATH = "/"
     private const val IS_HTTP_ONLY = true
     private const val IS_SECURE = true

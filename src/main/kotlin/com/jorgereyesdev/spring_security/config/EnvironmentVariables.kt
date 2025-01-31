@@ -53,6 +53,7 @@ class EnvironmentVariables {
     }
 
     object Api {
+        const val COOKIE_NAME = "refresh_token"
         lateinit var DOMAIN: String
 
         internal fun initialize(domain: String) {

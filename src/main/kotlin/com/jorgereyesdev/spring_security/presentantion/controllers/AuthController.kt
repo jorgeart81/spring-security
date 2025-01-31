@@ -2,6 +2,7 @@ package com.jorgereyesdev.spring_security.presentantion.controllers
 
 import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.Routes
+import com.jorgereyesdev.spring_security.config.EnvironmentVariables.Api
 import com.jorgereyesdev.spring_security.config.security.RefreshCookie
 import com.jorgereyesdev.spring_security.domain.models.GrantType
 import com.jorgereyesdev.spring_security.domain.models.Token
@@ -16,7 +17,6 @@ import com.jorgereyesdev.spring_security.presentantion.request.RegisterRequest
 import com.jorgereyesdev.spring_security.presentantion.request.toDomain
 import com.jorgereyesdev.spring_security.presentantion.response.ApiResponse
 import com.jorgereyesdev.spring_security.presentantion.response.UserResponse
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -77,11 +77,20 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
 
     @PostMapping("/refresh")
     fun refresh(
-        @RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String,
+        @CookieValue(Api.COOKIE_NAME) refreshTokenCookie: String?,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String?,
         response: HttpServletResponse
     ): ResponseEntity<ApiResponse<Nothing>> {
-        val (user, refreshToken) = authService.validateToken(authHeader)
-        if (user == null) return ResponseEntity.badRequest().build()
+        var refreshToken = refreshTokenCookie
+
+        if (refreshToken.isNullOrBlank()) {
+            if (authHeader.isNullOrEmpty() || !authHeader.startsWith(Constants.BEARER)) {
+                return ResponseEntity.badRequest().build()
+            }
+            refreshToken = authHeader.substring(7)
+        }
+
+        val user = authService.validateToken(refreshToken) ?: return ResponseEntity.badRequest().build()
 
         tokenService.revokeUserTokensByGrantType(user, GrantType.ACCESS)
 

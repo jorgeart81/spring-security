@@ -1,6 +1,5 @@
 package com.jorgereyesdev.spring_security.infrastructure.services
 
-import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
 import com.jorgereyesdev.spring_security.domain.models.RoleName
 import com.jorgereyesdev.spring_security.domain.models.User
@@ -72,14 +71,8 @@ class AuthServiceImpl(
     }
 
     @Transactional
-    override fun validateToken(authHeader: String?): Pair<User?, String> {
+    override fun validateToken(refreshToken: String): User? {
         return runCatching {
-            if (authHeader.isNullOrEmpty() || !authHeader.startsWith(Constants.BEARER)) {
-                throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
-            }
-
-            val refreshToken = authHeader.substring(7)
-
             require(!jwtService.isTokenExpired(refreshToken)) { ErrorMessages.INVALID_TOKEN }
 
             val username = jwtService.getUsernameFromToken(refreshToken)
@@ -95,7 +88,7 @@ class AuthServiceImpl(
                 )
             ) { ErrorMessages.INVALID_TOKEN }
 
-            Pair(userEntity.toDomain(), refreshToken)
+            userEntity.toDomain()
         }.onFailure {
             log.error(it.message)
         }.getOrThrow()
