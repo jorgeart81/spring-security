@@ -1,32 +1,33 @@
 package com.jorgereyesdev.spring_security.config.security
 
+import com.jorgereyesdev.spring_security.config.EnvironmentVariables.*
 import jakarta.servlet.http.Cookie
 
 object RefreshCookie {
-    private lateinit var _name: String
-    private lateinit var _path: String
-    private lateinit var _domain: String
-    private var _maxAge: Int = 0
-    private val _isHttpOnly = true
-    private val _isSecure = true
+    private const val NAME = "refresh_token"
+    private const val PATH = "/"
+    private const val IS_HTTP_ONLY = true
+    private const val IS_SECURE = true
+    private var _domain = Api.DOMAIN
+    private var _maxAge = Jwt.REFRESH_EXPIRATION / 1000
 
     fun build(value: String): Cookie {
-        return Cookie(_name, value).apply {
-            path = _path
+        return Cookie(NAME, value).apply {
+            path = PATH
             maxAge = _maxAge
-            secure = _isSecure
+            secure = IS_SECURE
             domain = _domain
-            isHttpOnly = _isHttpOnly
+            isHttpOnly = IS_HTTP_ONLY
         }
     }
 
     fun expired(): Cookie {
-        return Cookie(_name, null).apply {
-            path = _path
-            maxAge = -1
+        return Cookie(NAME, null).apply {
+            path = PATH
+            maxAge = 0
             domain = _domain
-            secure = _isSecure
-            isHttpOnly = _isHttpOnly
+            secure = IS_SECURE
+            isHttpOnly = IS_HTTP_ONLY
         }
     }
 }

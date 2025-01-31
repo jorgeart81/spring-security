@@ -6,6 +6,7 @@ import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.domain.models.RoleName
 import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.domain.services.TokenService
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -74,9 +75,9 @@ class SecurityConfig(
 
         httpSecurity.authenticationProvider(authenticationProvider()).logout {
             it.logoutUrl("${Routes.AUTH}/logout")
-            it.addLogoutHandler(LogoutHandler { request, _, _ ->
+            it.addLogoutHandler(LogoutHandler { request, response, _ ->
                 val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
-                logout(authHeader)
+                logout(authHeader, response)
             })
             it.logoutSuccessHandler(LogoutSuccessHandler { _, _, _ ->
                 SecurityContextHolder.clearContext()
@@ -87,7 +88,7 @@ class SecurityConfig(
     }
 
     @Transactional
-    private fun logout(token: String) {
+    private fun logout(token: String, response: HttpServletResponse) {
         require(token.startsWith(Constants.BEARER)) { ErrorMessages.INVALID_TOKEN }
 
         val jwtToken = token.substring(7)
@@ -100,11 +101,12 @@ class SecurityConfig(
             foundToken.user ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
         }
 
-        val isTokenValid = jwtService.isTokenValid(token, user.username, user.securityStamp)
+        val isTokenValid = jwtService.isTokenValid(jwtToken, user.username, user.securityStamp)
 
         if (!isTokenValid) throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
 
         tokenService.revokeAllUserValidTokens(user)
+        response.addCookie(RefreshCookie.expired())
     }
 }
 

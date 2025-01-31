@@ -7,26 +7,34 @@ import org.springframework.stereotype.Component
 @Component
 class EnvironmentVariables {
     @Value("\${spring.security.jwt.secret-key}")
-    private lateinit var jwtSecretKey: String
+    private lateinit var _jwtSecretKey: String
 
     @Value("\${spring.security.jwt.expiration:86400000}")
-    private var jwtExpiration: Int = 86400000 // a day
+    private var _jwtExpiration: Int = 86400000 // a day
 
     @Value("\${spring.security.jwt.refresh-token.expiration:604800000}")
-    private var jwtRefreshExpiration: Int = 604800000 // 7 days
+    private var _jwtRefreshExpiration: Int = 604800000 // 7 days
 
+    @Value("\${spring.cookie.domain}")
+    private lateinit var _domain: String
 
     @PostConstruct
     private fun validateEnvironment() {
-        if (jwtSecretKey.isBlank()) {
+        if (_jwtSecretKey.isBlank()) {
             throw IllegalArgumentException("JWT_SECRET_KEY must not be blank")
         }
 
-        if (jwtExpiration < 0 || jwtRefreshExpiration < 0) {
+        if (_jwtExpiration < 0 || _jwtRefreshExpiration < 0) {
             throw IllegalArgumentException("JWT_EXPIRATION and JWT_REFRESH_EXPIRATION must be greater than 0")
         }
 
-        Jwt.initialize(secretKey = jwtSecretKey, expiration = jwtExpiration, refreshExpiration = jwtRefreshExpiration)
+        Jwt.initialize(
+            secretKey = _jwtSecretKey,
+            expiration = _jwtExpiration,
+            refreshExpiration = _jwtRefreshExpiration
+        )
+
+        Api.initialize(domain = _domain)
     }
 
     object Jwt {
@@ -41,6 +49,15 @@ class EnvironmentVariables {
             this.SECRET_KEY = secretKey
             this.EXPIRATION = expiration
             this.REFRESH_EXPIRATION = refreshExpiration
+        }
+    }
+
+    object Api {
+        lateinit var DOMAIN: String
+
+        internal fun initialize(domain: String) {
+            this.DOMAIN = domain
+
         }
     }
 }
