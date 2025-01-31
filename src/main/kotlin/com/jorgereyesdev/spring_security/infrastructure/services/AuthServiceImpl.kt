@@ -1,6 +1,7 @@
 package com.jorgereyesdev.spring_security.infrastructure.services
 
 import com.jorgereyesdev.spring_security.config.Constants
+import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
 import com.jorgereyesdev.spring_security.domain.models.RoleName
 import com.jorgereyesdev.spring_security.domain.models.User
 import com.jorgereyesdev.spring_security.domain.services.AuthService
@@ -72,25 +73,32 @@ class AuthServiceImpl(
 
     @Transactional
     override fun validateToken(authHeader: String?): Pair<User?, String> {
-        if (authHeader.isNullOrEmpty() || !authHeader.startsWith(Constants.BEARER)) {
-            throw IllegalArgumentException("Invalid token")
-        }
+        return runCatching {
+            if (authHeader.isNullOrEmpty() || !authHeader.startsWith(Constants.BEARER)) {
+                throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
+            }
 
-        val refreshToken = authHeader.substring(7)
-        val username = jwtService.getUsernameFromToken(refreshToken) ?: throw IllegalArgumentException("Invalid token")
+            val refreshToken = authHeader.substring(7)
 
-        require(jwtService.isRefreshTokenValid(refreshToken, username)) {
-            "Invalid token"
-        }
+            require(!jwtService.isTokenExpired(refreshToken)) { ErrorMessages.INVALID_TOKEN }
 
-        val userEntity = userRepository.findByUsernameWithValidTokens(username)
-        val isTokenAllowed = userEntity?.tokens?.any { it.token == refreshToken } ?: false
+            val username = jwtService.getUsernameFromToken(refreshToken)
+                ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
+            val userEntity = userRepository.findByUsernameWithValidTokens(username)
+                ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
 
-        if (!isTokenAllowed) throw IllegalArgumentException("Invalid token")
+            require(
+                jwtService.isTokenValid(
+                    refreshToken,
+                    userEntity.username,
+                    userEntity.securityStamp
+                )
+            ) { ErrorMessages.INVALID_TOKEN }
 
-        val user = username.let { userRepository.findByUsername(it)?.toDomain() }
-
-        return Pair(user, refreshToken)
+            Pair(userEntity.toDomain(), refreshToken)
+        }.onFailure {
+            log.error(it.message)
+        }.getOrThrow()
     }
 
     private fun authenticate(username: String, password: String) {

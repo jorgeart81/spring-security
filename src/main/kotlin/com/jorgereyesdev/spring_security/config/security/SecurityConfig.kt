@@ -3,10 +3,13 @@ package com.jorgereyesdev.spring_security.config.security
 import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.ErrorMessages
 import com.jorgereyesdev.spring_security.config.Constants.Routes
+import com.jorgereyesdev.spring_security.domain.models.RoleName
+import com.jorgereyesdev.spring_security.domain.services.JWTService
 import com.jorgereyesdev.spring_security.domain.services.TokenService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
@@ -31,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional
 class SecurityConfig(
     val userDetailsService: UserDetailsService,
     val tokenService: TokenService,
+    val jwtService: JWTService,
     val jwtAuthenticationFilter: JwtAuthenticationFilter,
     val jwtAuthenticationEntryPoint: JWTAuthenticationEntryPoint,
 ) {
@@ -59,11 +63,13 @@ class SecurityConfig(
             exceptionHandling { authenticationEntryPoint = jwtAuthenticationEntryPoint }
             authorizeHttpRequests {
                 authorize("${Routes.AUTH}/**", permitAll)
-                authorize("${Routes.USERS}/**", permitAll)
+                authorize("${Routes.USERS}/**", hasRole(RoleName.ADMIN.name))
+                authorize("${Routes.PRODUCTS}/**", hasAnyRole(RoleName.ADMIN.name, RoleName.USER.name))
                 authorize(anyRequest, authenticated)
             }
             sessionManagement { SessionCreationPolicy.STATELESS }
             addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthenticationFilter)
+//            anonymous { disable() }
         }
 
         httpSecurity.authenticationProvider(authenticationProvider()).logout {
@@ -93,6 +99,10 @@ class SecurityConfig(
 
             foundToken.user ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
         }
+
+        val isTokenValid = jwtService.isTokenValid(token, user.username, user.securityStamp)
+
+        if (!isTokenValid) throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
 
         tokenService.revokeAllUserValidTokens(user)
     }

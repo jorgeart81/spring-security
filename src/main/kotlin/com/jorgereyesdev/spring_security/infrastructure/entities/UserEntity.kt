@@ -34,11 +34,12 @@ data class UserEntity(
     @Column(columnDefinition = "bit(1) default 1", nullable = false)
     var enabled: Boolean,
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = ["user"])
+    @OneToMany(mappedBy = "user")
     var tokens: MutableList<TokenEntity> = mutableListOf(),
 
     @JsonIgnoreProperties(value = ["users"])
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_role",
         joinColumns = [JoinColumn(name = "user_id")],

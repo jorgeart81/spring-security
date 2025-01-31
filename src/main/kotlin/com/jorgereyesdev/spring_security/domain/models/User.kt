@@ -11,4 +11,9 @@ data class User(
     var enabled: Boolean,
     var tokens: MutableList<Token> = mutableListOf(),
     var roles: MutableSet<Role> = mutableSetOf(),
-)
+) {
+    init {
+        require(username.isNotBlank()) { "Username cannot be blank" }
+        require(password.isNotBlank()) { "Username cannot be blank" }
+    }
+}
