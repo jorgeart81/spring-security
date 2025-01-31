@@ -88,7 +88,7 @@ class JwtAuthenticationFilter(
     }
 
     private fun isPublicRoute(request: HttpServletRequest): Boolean {
-        val publicRoutes = listOf("${Routes.AUTH}/register", "${Routes.AUTH}/login")
+        val publicRoutes = listOf(Routes.AUTH)
         return publicRoutes.any {
             request.servletPath.contains(it)
         }
