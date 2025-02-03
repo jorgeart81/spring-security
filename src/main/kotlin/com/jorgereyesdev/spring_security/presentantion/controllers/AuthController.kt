@@ -3,7 +3,7 @@ package com.jorgereyesdev.spring_security.presentantion.controllers
 import com.jorgereyesdev.spring_security.config.Constants
 import com.jorgereyesdev.spring_security.config.Constants.Routes
 import com.jorgereyesdev.spring_security.config.EnvironmentVariables.Api
-import com.jorgereyesdev.spring_security.config.security.RefreshCookie
+import com.jorgereyesdev.spring_security.config.RefreshCookie
 import com.jorgereyesdev.spring_security.domain.models.GrantType
 import com.jorgereyesdev.spring_security.domain.models.Token
 import com.jorgereyesdev.spring_security.domain.models.TokenType
@@ -35,7 +35,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
     ): ResponseEntity<ApiResponse<Nothing>> {
         val newUser = authService.register(registerRequest.toDomain())
         val location =
-            ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newUser.id)
+            ServletUriComponentsBuilder.fromCurrentContextPath().path("/${Routes.USERS}/{id}").buildAndExpand(newUser.id)
                 .toUri()
 
         val (accessToken, refreshToken) = saveAccessAndRefreshToken(newUser)
@@ -47,7 +47,6 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
             .body(
                 ApiResponse.Success(
                     accessToken = accessToken,
-                    refreshToken = refreshToken
                 )
             )
     }
@@ -70,7 +69,6 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
             ApiResponse.Success(
                 data = user.toUserResponse(),
                 accessToken = accessToken,
-                refreshToken = refreshToken
             )
         )
     }
@@ -108,24 +106,8 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         return ResponseEntity.ok(
             ApiResponse.Success(
                 accessToken = accessToken.token,
-                refreshToken = refreshToken
             )
         )
-    }
-
-    private fun <T> errorResponse(exception: Throwable): ResponseEntity<ApiResponse<T>> {
-        return when (exception) {
-            is IllegalArgumentException -> ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(
-                    ApiResponse.Error(
-                        HttpStatus.CONFLICT,
-                        exception.message ?: "Unexpected error occurred"
-                    )
-                )
-
-            is RuntimeException -> ResponseEntity.notFound().build()
-            else -> ResponseEntity.internalServerError().build()
-        }
     }
 
     @PostMapping("/register2")
@@ -160,7 +142,6 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
                 return ResponseEntity.created(location).body(
                     ApiResponse.Success(
                         accessToken = accessToken,
-                        refreshToken = refreshToken
                     )
                 )
             },
@@ -199,5 +180,21 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
     private fun addHeaderToken(response: HttpServletResponse, token: String) {
         response.addHeader(Constants.AUTHORIZATION, "${Constants.BEARER} $token")
     }
+
+    private fun <T> errorResponse(exception: Throwable): ResponseEntity<ApiResponse<T>> {
+        return when (exception) {
+            is IllegalArgumentException -> ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(
+                    ApiResponse.Error(
+                        HttpStatus.CONFLICT,
+                        exception.message ?: "Unexpected error occurred"
+                    )
+                )
+
+            is RuntimeException -> ResponseEntity.notFound().build()
+            else -> ResponseEntity.internalServerError().build()
+        }
+    }
+
 
 }

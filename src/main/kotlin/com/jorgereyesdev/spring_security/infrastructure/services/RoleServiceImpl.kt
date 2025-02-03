@@ -12,7 +12,7 @@ class RoleServiceImpl(val roleRepository: RoleRepository) : RoleService {
 
     @Transactional(readOnly = true)
     override fun findRoleByRoleName(role: RoleName): RoleEntity =
-        roleRepository.findByName(role) ?: throw Exception("Role with name '${this}' not found")
+        roleRepository.findByName(role) ?: throw Exception("Role not found")
 
     @Transactional(readOnly = true)
     override fun findRoleByRoleName(role: RoleName, entity: (RoleEntity) -> Unit) {

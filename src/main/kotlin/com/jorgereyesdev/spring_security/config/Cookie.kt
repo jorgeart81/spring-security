@@ -1,4 +1,4 @@
-package com.jorgereyesdev.spring_security.config.security
+package com.jorgereyesdev.spring_security.config
 
 import com.jorgereyesdev.spring_security.config.EnvironmentVariables.*
 import jakarta.servlet.http.Cookie
