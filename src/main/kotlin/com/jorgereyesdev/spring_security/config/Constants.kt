@@ -8,6 +8,8 @@ class Constants {
     }
 
     object Routes {
+        const val SWAGGER_UI = "/swagger-ui"
+        const val V3= "/v3"
         const val AUTH = "${API}/auth"
         const val PRODUCTS = "${API}/products"
         const val USERS = "${API}/users"

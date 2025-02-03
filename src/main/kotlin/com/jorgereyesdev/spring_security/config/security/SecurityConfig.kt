@@ -64,6 +64,9 @@ class SecurityConfig(
             csrf { disable() }
             exceptionHandling { authenticationEntryPoint = jwtAuthenticationEntryPoint }
             authorizeHttpRequests {
+                authorize("${Routes.V3}/**", permitAll)
+                authorize("${Routes.SWAGGER_UI}/**", permitAll)
+
                 authorize("${Routes.AUTH}/**", permitAll)
 
                 authorize("${Routes.USERS}/{id}", hasAnyRole(RoleName.ADMIN.name, RoleName.USER.name))

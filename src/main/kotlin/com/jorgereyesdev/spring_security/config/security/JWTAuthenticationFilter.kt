@@ -88,7 +88,7 @@ class JwtAuthenticationFilter(
     }
 
     private fun isPublicRoute(request: HttpServletRequest): Boolean {
-        val publicRoutes = listOf(Routes.AUTH)
+        val publicRoutes = listOf(Routes.AUTH, Routes.V3, Routes.SWAGGER_UI)
         return publicRoutes.any {
             request.servletPath.contains(it)
         }
