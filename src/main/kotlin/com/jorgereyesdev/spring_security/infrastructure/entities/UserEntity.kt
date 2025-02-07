@@ -47,6 +47,10 @@ data class UserEntity(
         uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "role_id"])]
     )
     var roles: MutableList<RoleEntity> = mutableListOf(),
+
+    @JsonIgnoreProperties(value = ["user"])
+    @OneToMany(mappedBy = "user")
+    var claims: MutableList<UserClaimsEntity> = mutableListOf(),
 ) {
     override fun toString(): String {
         return "UserEntity(id=$id, username=$username)"
