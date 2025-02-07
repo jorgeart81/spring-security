@@ -73,8 +73,6 @@ class AuthServiceImpl(
     @Transactional
     override fun validateToken(refreshToken: String): User? {
         return runCatching {
-            require(!jwtService.isTokenExpired(refreshToken)) { ErrorMessages.INVALID_TOKEN }
-
             val username = jwtService.getUsernameFromToken(refreshToken)
                 ?: throw IllegalArgumentException(ErrorMessages.INVALID_TOKEN)
             val userEntity = userRepository.findByUsernameWithValidTokens(username)

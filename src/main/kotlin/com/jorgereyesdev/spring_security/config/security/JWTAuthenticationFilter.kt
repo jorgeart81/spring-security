@@ -47,9 +47,8 @@ class JwtAuthenticationFilter(
         val userDetails =
             runCatching {
                 val username = jwtService.getUsernameFromToken(token)
-                val isTokenExpired = jwtService.isTokenExpired(token)
 
-                if (username.isNullOrEmpty() || isTokenExpired) {
+                if (username.isNullOrEmpty()) {
                     throw AuthenticationCredentialsNotFoundException(ErrorMessages.INVALID_TOKEN)
                 }
 

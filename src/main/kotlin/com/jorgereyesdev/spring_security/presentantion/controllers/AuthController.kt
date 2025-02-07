@@ -73,7 +73,7 @@ class AuthController(val authService: AuthService, val tokenService: TokenServic
         )
     }
 
-    @PostMapping("/refresh")
+    @GetMapping("/refresh")
     fun refresh(
         @CookieValue(Api.COOKIE_NAME) refreshTokenCookie: String?,
         @RequestHeader(HttpHeaders.AUTHORIZATION) authHeader: String?,
