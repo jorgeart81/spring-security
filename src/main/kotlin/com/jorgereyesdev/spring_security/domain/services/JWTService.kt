@@ -7,11 +7,7 @@ interface JWTService {
 
     fun generateRefreshToken(user: User): String
 
-    fun isTokenExpired(token: String): Boolean
-
     fun isTokenValid(token: String, username: String, securityStamp: String?): Boolean
-
-    fun isRefreshTokenValid(token: String, username: String): Boolean
 
     fun getUsernameFromToken(token: String): String?
 }

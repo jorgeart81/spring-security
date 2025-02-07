@@ -34,30 +34,37 @@ class JWTServiceImpl : JWTService {
         )
     }
 
-    override fun isTokenExpired(token: String): Boolean {
-        return getExpiration(token).before(Date(System.currentTimeMillis()))
-    }
-
     override fun isTokenValid(token: String, username: String, securityStamp: String?): Boolean {
-        val (subject, stamp) = getClaims(token) { claims ->
-            Pair(claims.subject, claims[SECURITY_STAMP].toString())
-        }
-        val isValidUsername = username == subject
-        val isValidSecurityStamp = securityStamp.equals(stamp)
-        return isValidUsername && isValidSecurityStamp && !isTokenExpired(token)
+        val validationParameters = TokenValidationParameters(
+            validateUsername = true,
+            username = username,
+            validateSecurityStamp = true,
+            securityStamp = securityStamp,
+            validateLifetime = true,
+            validateIssuerSigningKey = true,
+            issuerSigningKey = getSignInKey()
+        )
 
-    }
+        val claims = JwtSecurityTokenHandler.validateToken(
+            parameters = validationParameters,
+            token = token,
+        )
 
-    override fun isRefreshTokenValid(token: String, username: String): Boolean {
-        val (subject, grantType) = getClaims(token) { claims ->
-            claims[GRANT_TYPE] as? String
-            Pair(claims.subject, claims[GRANT_TYPE] as? String)
-        }
-        return subject.equals(username) && grantType.equals(REFRESH_TOKEN) && !isTokenExpired(token)
+        return claims != null
+
     }
 
     override fun getUsernameFromToken(token: String): String? {
-        return getClaims(token, Claims::getSubject)
+        val validationParameters = TokenValidationParameters(
+            validateLifetime = true,
+            validateIssuerSigningKey = true,
+            issuerSigningKey = getSignInKey()
+        )
+
+        return JwtSecurityTokenHandler.validateToken(
+            parameters = validationParameters,
+            token = token,
+        )?.subject
     }
 
     private fun buildToken(user: User, expiration: Int, extraClaims: Map<String, Any> = mapOf()): String {
@@ -78,19 +85,78 @@ class JWTServiceImpl : JWTService {
         return Keys.hmacShaKeyFor(keyBytes)
     }
 
-    private fun getAllClaims(token: String): Claims {
-        return Jwts
-            .parser()
-            .verifyWith(getSignInKey())
-            .build()
-            .parseSignedClaims(token)
-            .payload
+    companion object {
+        const val USERNAME = "username"
+        const val GRANT_TYPE = "grantType"
+        const val SECURITY_STAMP = "securityStamp"
+        const val ACCESS_TOKEN = "access"
+        const val REFRESH_TOKEN = "refresh"
+    }
+}
+
+private class TokenValidationParameters(
+    val validateUsername: Boolean = false,
+    val username: String? = null,
+    val validateSecurityStamp: Boolean = false,
+    val securityStamp: String? = null,
+    val validateLifetime: Boolean = true,
+    val validateIssuerSigningKey: Boolean = true,
+    val issuerSigningKey: SecretKey,
+)
+
+private object JwtSecurityTokenHandler {
+    const val SECURITY_STAMP = "securityStamp"
+
+    private val log: Logger = LoggerFactory.getLogger(JWTService::class.java)
+    private var status: ValidationStatus = ValidationStatus.ClaimsValidation
+
+    fun validateToken(
+        parameters: TokenValidationParameters,
+        token: String,
+    ): Claims? {
+        status = ValidationStatus.ClaimsValidation
+        val claims = getAllClaims(token, parameters)
+        claimsValidation(claims, parameters)
+
+        val result = when (status) {
+            is ValidationStatus.Expired -> null
+            is ValidationStatus.InvalidUsername -> null
+            is ValidationStatus.InvalidSecurityStamp -> null
+            else -> claims
+        }
+
+        return result
     }
 
-    private fun <T> getClaims(token: String, claimsResolver: (Claims) -> T): T {
+    private fun claimsValidation(claims: Claims, parameters: TokenValidationParameters) {
+        var isExpired = false
+        var isValidSecurityStamp = true
+        var isValidUsername = true
+
+        if (status !is ValidationStatus.ClaimsValidation) return
+        if (parameters.validateLifetime) isExpired = claims.expiration.before(Date(System.currentTimeMillis()))
+        if (parameters.validateSecurityStamp) isValidSecurityStamp = claims[SECURITY_STAMP] == parameters.securityStamp
+        if (parameters.validateUsername) isValidUsername = claims.subject == parameters.username
+
+        when {
+            isExpired -> status = ValidationStatus.Expired
+            !isValidSecurityStamp -> status = ValidationStatus.InvalidSecurityStamp
+            !isValidUsername -> status = ValidationStatus.InvalidUsername
+        }
+    }
+
+    private fun getAllClaims(token: String, parameters: TokenValidationParameters): Claims {
+        val parserBuilder = Jwts.parser().apply {
+            if (parameters.validateIssuerSigningKey) {
+                verifyWith(parameters.issuerSigningKey)
+            }
+        }.build()
+
+        return parserBuilder.parseSignedClaims(token).payload
+    }
+
+    private fun <T> getClaims(claims: Claims, claimsResolver: (Claims) -> T): T {
         try {
-            val claims = getAllClaims(token)
-            val x = Claims::getSubject
             return claimsResolver(claims)
         } catch (exception: Exception) {
             log.error(exception.message)
@@ -98,16 +164,10 @@ class JWTServiceImpl : JWTService {
         }
     }
 
-
-    private fun getExpiration(token: String): Date {
-        return getClaims(token, Claims::getExpiration)
-    }
-
-    companion object {
-        const val USERNAME = "username"
-        const val GRANT_TYPE = "grantType"
-        const val SECURITY_STAMP = "securityStamp"
-        const val ACCESS_TOKEN = "access"
-        const val REFRESH_TOKEN = "refresh"
+    private sealed class ValidationStatus {
+        data object ClaimsValidation : ValidationStatus()
+        data object Expired : ValidationStatus()
+        data object InvalidUsername : ValidationStatus()
+        data object InvalidSecurityStamp : ValidationStatus()
     }
 }
